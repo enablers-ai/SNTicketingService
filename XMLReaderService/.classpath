@@ -14,5 +14,43 @@
 	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/resources.jar"/>
 	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/rt.jar"/>
 	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/apache-httpcomponents-httpclient.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/collection-0.7.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/commons-cli-1.4.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/commons-codec-1.11.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/commons-compress-1.17.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/commons-csv-1.5.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/commons-io-2.6.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/commons-lang3-3.4.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/httpclient-4.5.5.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/httpclient-cache-4.5.5.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/httpcore-4.4.9.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/jackson-annotations-2.9.0.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/jackson-core-2.9.6.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/jackson-databind-2.9.6.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/jcl-over-slf4j-1.7.25.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/jena-arq-3.10.0.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/jena-base-3.10.0.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/jena-cmds-3.10.0.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/jena-core-3.10.0.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/jena-dboe-base-3.10.0.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/jena-dboe-index-3.10.0.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/jena-dboe-transaction-3.10.0.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/jena-dboe-trans-data-3.10.0.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/jena-iri-3.10.0.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/jena-rdfconnection-3.10.0.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/jena-shaded-guava-3.10.0.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/jena-tdb2-3.10.0.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/jena-tdb-3.10.0.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/jsonld-java-0.12.1.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/libthrift-0.10.0.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/log4j-1.2.17.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/slf4j-api-1.7.25.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/slf4j-log4j12-1.7.25.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/jena-fuseki-0.2.7.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/jena-arq-3.10.0-sources.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/jena-cmds-3.10.0-sources.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/jena-core-3.10.0-sources.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/jena-rdfconnection-3.10.0-sources.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/jena-tdb-3.10.0-sources.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
