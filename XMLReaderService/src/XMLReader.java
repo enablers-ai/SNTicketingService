@@ -14,6 +14,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -38,16 +40,29 @@ class XMLReader {
 	{
 		// TODO Auto-generated method stub
 		//parse();
-		ParseXML();
+		startPollingTimer();
+		
 		//System.out.println(SimpleOutPut());
 		System.out.println(executePost("https://192.168.1.77:5443/rest/events/openalarms",""));
 
 	}
 	
-//	public static String SimpleOutPut()
-//	{
-//		return "All is well";
-//	}
+	public static Timer t;
+
+	public static synchronized void startPollingTimer() {
+	        if (t == null) {
+	            TimerTask task = new TimerTask() {
+	                @Override
+	                public void run() {
+	                	ParseXML();
+	                   //Do your work
+	                }
+	            };
+
+	            t = new Timer();
+	            t.scheduleAtFixedRate(task, 0, 3000);
+	        }
+	    }
 	
 	
 	public static void ParseXML()
