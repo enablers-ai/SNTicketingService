@@ -3,8 +3,10 @@ import java.io.BufferedWriter;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -63,7 +65,25 @@ class XMLReader {
 	            t.scheduleAtFixedRate(task, 0, 3000);
 	        }
 	    }
-	
+	 public static void appendToFile(Exception e) {
+	      try {
+	        
+	         File file = new File("E:\\XMLData\\exception.txt");
+	            // If file doesn't exists, then create it
+	            if (!file.exists()) {
+	                file.createNewFile();
+	            }
+	         FileWriter fstream = new FileWriter("E:\\XMLData\\exception.txt", true);
+	         BufferedWriter out = new BufferedWriter(fstream);
+	         PrintWriter pWriter = new PrintWriter(out, true);
+	         pWriter.print("*****************--------New exception----------********************");
+	         pWriter.println();
+	         e.printStackTrace(pWriter);
+	      }
+	      catch (Exception ie) {
+	         throw new RuntimeException("Could not write Exception to file", ie);
+	      }
+	   }
 	
 	public static void ParseXML()
 	{
@@ -84,8 +104,10 @@ class XMLReader {
 
 			}
 
-		    } catch (Exception e) {
-			System.out.println(e.getMessage());
+		    } catch (Exception e) 
+			{
+		    	appendToFile(e);
+			//System.out.println(e.getMessage());
 		    }
 
 		  }
@@ -221,7 +243,8 @@ class XMLReader {
 		  } 
 		  catch (Exception e)
 		  {
-		    e.printStackTrace();
+			  appendToFile(e);
+		    //e.printStackTrace();
 		    return null;
 		  } finally {
 		    if (connection != null) {
