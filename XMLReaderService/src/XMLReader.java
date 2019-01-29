@@ -37,9 +37,10 @@ import java.io.InputStream;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 class XMLReader {
-
+	private static String OSName = null;
 	public static void main(String[] args)
 	{
+		OSName = System.getProperty("os.name").toLowerCase();
 		// TODO Auto-generated method stub
 		//parse();
 		startPollingTimer();
@@ -67,13 +68,18 @@ class XMLReader {
 	    }
 	 public static void appendToFile(Exception e) {
 	      try {
-	        
-	         File file = new File("E:\\XMLData\\exception.txt");
+	    	  File file;
+	    	  if (OSName.indexOf("win") >= 0) {
+	    		  file= new File("E:\\XMLData\\exception.txt");
+	    		} else {
+	    			 file = new File("/XMLData/exception.txt");
+	    		}
+	         //File file = new File("E:\\XMLData\\exception.txt");
 	            // If file doesn't exists, then create it
 	            if (!file.exists()) {
 	                file.createNewFile();
 	            }
-	         FileWriter fstream = new FileWriter("E:\\XMLData\\exception.txt", true);
+	         FileWriter fstream = new FileWriter(file.getPath(), true);
 	         BufferedWriter out = new BufferedWriter(fstream);
 	         PrintWriter pWriter = new PrintWriter(out, true);
 	         pWriter.print("*****************--------New exception----------********************");
@@ -88,8 +94,13 @@ class XMLReader {
 	public static void ParseXML()
 	{
 		try {
-
-			File file = new File("E:\\XMLData\\Sample.xml");
+			 File file;
+	    	  if (OSName.indexOf("win") >= 0) {
+	    		  file= new File("E:\\XMLData\\Sample.xml");
+	    		} else {
+	    			 file = new File("/XMLData/Sample.xml");
+	    		}
+			//File file = new File("E:\\XMLData\\Sample.xml");
 
 			DocumentBuilder dBuilder = DocumentBuilderFactory.newInstance()
 		                             .newDocumentBuilder();
@@ -157,6 +168,11 @@ class XMLReader {
 	public static String executePost(String targetURL, String urlParameters) {
 		  HttpURLConnection connection = null;
 		  String path="E:\\XMLData\\Sample.xml";
+		  if (OSName.indexOf("win") >= 0) {
+			  path="E:\\XMLData\\Sample.xml";
+    		} else {
+    			path="/XMLData/Sample.xml";
+    		}
 		  final Path dst = Paths.get(path);
 		  final BufferedWriter writer;
 		  try {
