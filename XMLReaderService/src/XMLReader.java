@@ -46,7 +46,7 @@ class XMLReader {
 		startPollingTimer();
 		
 		//System.out.println(SimpleOutPut());
-		System.out.println(executePost("https://192.168.1.77:5443/rest/events/openalarms",""));
+		//System.out.println(executePost("https://192.168.1.77:5443/rest/events/openalarms",""));
 
 	}
 	
@@ -57,6 +57,7 @@ class XMLReader {
 	            TimerTask task = new TimerTask() {
 	                @Override
 	                public void run() {
+	                	executePost("https://192.168.1.77:5443/rest/events/openalarms","");
 	                	ParseXML();
 	                   //Do your work
 	                }
@@ -106,15 +107,29 @@ class XMLReader {
 		                             .newDocumentBuilder();
 
 			Document doc = dBuilder.parse(file);
-
-			System.out.println("Root element :" + doc.getDocumentElement().getNodeName());
+			 StringBuilder sb = new StringBuilder();
+			 sb.append("Root element :" + doc.getDocumentElement().getNodeName());
+			//System.out.println("Root element :" + doc.getDocumentElement().getNodeName());
 
 			if (doc.hasChildNodes()) {
 
-				printNote(doc.getChildNodes());
-
+			String res=	printNote(doc.getChildNodes());
+			sb.append(res);
 			}
-
+			File fileParsed;
+			 
+	    	  if (OSName.indexOf("win") >= 0) {
+	    		  fileParsed= new File("E:\\XMLData\\ParsedXML.txt");
+	    		} else {
+	    			fileParsed = new File("/XMLData/ParsedXML.txt");
+	    		}
+	    	  if (!fileParsed.exists())
+	    	   {
+	    		  fileParsed.createNewFile();
+	            }
+			try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileParsed))) {
+			    writer.write(sb.toString());
+			}
 		    } catch (Exception e) 
 			{
 		    	appendToFile(e);
@@ -123,8 +138,9 @@ class XMLReader {
 
 		  }
 
-		  private static void printNote(NodeList nodeList) {
-
+		  private static String printNote(NodeList nodeList) throws IOException {
+			  
+	    	  StringBuilder sb = new StringBuilder();
 		    for (int count = 0; count < nodeList.getLength(); count++) {
 
 			Node tempNode = nodeList.item(count);
@@ -133,8 +149,10 @@ class XMLReader {
 			if (tempNode.getNodeType() == Node.ELEMENT_NODE) {
 
 				// get node name and value
-				System.out.println("\nNode Name =" + tempNode.getNodeName() + " [OPEN]");
-				System.out.println("Node Value =" + tempNode.getTextContent());
+				sb.append("\nNode Name =" + tempNode.getNodeName() + " [OPEN]");
+				//System.out.println("\nNode Name =" + tempNode.getNodeName() + " [OPEN]");
+				//System.out.println("Node Value =" + tempNode.getTextContent());
+				sb.append("Node Value =" + tempNode.getTextContent());
 
 				if (tempNode.hasAttributes()) {
 
@@ -144,8 +162,10 @@ class XMLReader {
 					for (int i = 0; i < nodeMap.getLength(); i++) {
 
 						Node node = nodeMap.item(i);
-						System.out.println("attr name : " + node.getNodeName());
-						System.out.println("attr value : " + node.getNodeValue());
+						sb.append("attr name : " + node.getNodeName());
+						//System.out.println("attr name : " + node.getNodeName());
+						//System.out.println("attr value : " + node.getNodeValue());
+						sb.append("attr value : " + node.getNodeValue());
 
 					}
 
@@ -154,15 +174,17 @@ class XMLReader {
 				if (tempNode.hasChildNodes()) {
 
 					// loop again if has child nodes
-					printNote(tempNode.getChildNodes());
-
+					 String result= printNote(tempNode.getChildNodes());
+					sb.append(result);
 				}
-
-				System.out.println("Node Name =" + tempNode.getNodeName() + " [CLOSE]");
+				sb.append("Node Name =" + tempNode.getNodeName() + " [CLOSE]");
+				//FileWriter fstream = new FileWriter(fileParsed.getPath(), true);
+				//System.out.println("Node Name =" + tempNode.getNodeName() + " [CLOSE]");
 
 			}
 
 		    }
+		    return sb.toString();
 	}
 	
 	public static String executePost(String targetURL, String urlParameters) {
