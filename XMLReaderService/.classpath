@@ -23,7 +23,6 @@
 	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/commons-lang3-3.4.jar"/>
 	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/httpclient-4.5.5.jar"/>
 	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/httpclient-cache-4.5.5.jar"/>
-	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/httpcore-4.4.9.jar"/>
 	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/jackson-annotations-2.9.0.jar"/>
 	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/jackson-core-2.9.6.jar"/>
 	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/jackson-databind-2.9.6.jar"/>
@@ -52,5 +51,7 @@
 	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/jena-core-3.10.0-sources.jar"/>
 	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/jena-rdfconnection-3.10.0-sources.jar"/>
 	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/jena-tdb-3.10.0-sources.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/apache-httpcomponents-httpmime.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/http-core-4.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
