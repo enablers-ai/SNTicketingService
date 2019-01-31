@@ -54,8 +54,8 @@ class XMLReader {
 		OSName = System.getProperty("os.name").toLowerCase();
 		// TODO Auto-generated method stub
 		//parse();
-		//startPollingTimer();
-		String APIResults= UploadFileAPI();
+		startPollingTimer();
+		
 		//System.out.println(SimpleOutPut());
 		//System.out.println(executePost("https://192.168.1.77:5443/rest/events/openalarms",""));
 
@@ -69,8 +69,8 @@ class XMLReader {
 	                @Override
 	                public void run() {
 	                	executePost("https://192.168.1.77:5443/rest/events/openalarms","");
-	                	String APIResult=ConsumeAPI();
 	                	ParseXML();
+	                	String APIResults= UploadFileAPI();
 	                   //Do your work
 	                }
 	            };
