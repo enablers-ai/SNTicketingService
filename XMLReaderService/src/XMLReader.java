@@ -55,7 +55,7 @@ class XMLReader {
 		// TODO Auto-generated method stub
 		//parse();
 		startPollingTimer();
-		
+		//
 		//System.out.println(SimpleOutPut());
 		//System.out.println(executePost("https://192.168.1.77:5443/rest/events/openalarms",""));
 
