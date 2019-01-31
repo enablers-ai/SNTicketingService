@@ -2,6 +2,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -9,6 +10,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -29,6 +31,15 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.content.InputStreamBody;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.util.EntityUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -43,8 +54,8 @@ class XMLReader {
 		OSName = System.getProperty("os.name").toLowerCase();
 		// TODO Auto-generated method stub
 		//parse();
-		startPollingTimer();
-		
+		//startPollingTimer();
+		String APIResults= UploadFileAPI();
 		//System.out.println(SimpleOutPut());
 		//System.out.println(executePost("https://192.168.1.77:5443/rest/events/openalarms",""));
 
@@ -58,13 +69,14 @@ class XMLReader {
 	                @Override
 	                public void run() {
 	                	executePost("https://192.168.1.77:5443/rest/events/openalarms","");
+	                	String APIResult=ConsumeAPI();
 	                	ParseXML();
 	                   //Do your work
 	                }
 	            };
 
 	            t = new Timer();
-	            t.scheduleAtFixedRate(task, 0, 3000);
+	            t.scheduleAtFixedRate(task, 0, 30000);
 	        }
 	    }
 	 public static void appendToFile(Exception e) {
@@ -94,6 +106,7 @@ class XMLReader {
 	
 	public static void ParseXML()
 	{
+		
 		try {
 			 File file;
 	    	  if (OSName.indexOf("win") >= 0) {
@@ -290,5 +303,78 @@ class XMLReader {
 		    }
 		  }
 		}
-
+	public static String UploadFileAPI()
+	{
+		String result=null;
+		File inFile = new File("E:\\XMLData\\Sample.xml");
+		FileInputStream fis = null;
+		try {
+			fis = new FileInputStream(inFile);
+			DefaultHttpClient httpclient = new DefaultHttpClient(new BasicHttpParams());
+			
+			// server back-end URL
+			HttpPost httppost = new HttpPost("http://localhost:5797/api/FileUpload/Post");
+			MultipartEntity entity = new MultipartEntity();
+			// set the file input stream and file name as arguments
+			entity.addPart("file", new InputStreamBody(fis, inFile.getName()));
+			httppost.setEntity(entity);
+			// execute the request
+			HttpResponse response = httpclient.execute(httppost);
+			
+			int statusCode = response.getStatusLine().getStatusCode();
+			HttpEntity responseEntity = response.getEntity();
+			String responseString = EntityUtils.toString(responseEntity, "UTF-8");
+			result= statusCode + "\n " + responseString;
+			
+		} catch (ClientProtocolException e) {
+			System.err.println("Unable to make connection");
+			e.printStackTrace();
+		} catch (IOException e) {
+			System.err.println("Unable to read file");
+			e.printStackTrace();
+		} finally {
+			try {
+				if (fis != null) fis.close();
+			} catch (IOException e) {}
+		}
+		return result;
+	}
+//    public static String ConsumeAPI()
+//    {
+//    	String result=null;
+//    	 URL url;
+//		try {
+//			url = new URL("http://api.timezonedb.com/v2/list-time-zone?key=LQY1SS2O2Z4L&amp;format=json&amp;country=NG");
+//			//your url i.e fetch data from .
+//           
+//           try {
+//        	   HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+//   			conn = (HttpURLConnection) url.openConnection();
+//            conn.setRequestMethod("GET");
+//            conn.setRequestProperty("Accept", "application/json");
+//            if (conn.getResponseCode() != 200) {
+//            	result="Failure";
+//                throw new RuntimeException("Failed : HTTP Error code : "
+//                        + conn.getResponseCode());
+//            }
+//            InputStreamReader in = new InputStreamReader(conn.getInputStream());
+//            BufferedReader br = new BufferedReader(in);
+//            String output;
+//            result="Success";
+//            while ((output = br.readLine()) != null) {
+//                System.out.println(output);
+//            }
+//   		} 
+//           catch (IOException e)
+//           {
+//   			// TODO Auto-generated catch block
+//   			e.printStackTrace();
+//   		   }
+//		} catch (MalformedURLException e) {
+//			// TODO Auto-generated catch block
+//		e.printStackTrace();
+//		}//your url i.e fetch data from .
+//         
+//    	return result;
+//    }
 }
