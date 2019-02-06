@@ -218,7 +218,8 @@ class XMLReader {
 	}
 	
 	public static String executePost(String targetURL, String urlParameters) {
-		  HttpURLConnection connection = null;
+		final Object lock = new Object();  
+		HttpURLConnection connection = null;
 		  String path=null;
 		  if (OSName.indexOf("win") >= 0) {
 			  path="E:\\XMLData\\Sample.xml";
@@ -286,21 +287,27 @@ class XMLReader {
 		    //Get Response  
 		    InputStream is = connection.getInputStream();
 		    BufferedReader rd = new BufferedReader(new InputStreamReader(is));
-		    File file = new File(path);
-            // If file doesn't exists, then create it
-            if (!file.exists()) {
-                file.createNewFile();
-            }
             writer = Files.newBufferedWriter(dst, StandardCharsets.UTF_8);
 		    StringBuilder response = new StringBuilder(); // or StringBuffer if Java version 5+
 		    String line;
 		    while ((line = rd.readLine()) != null) {
 		      response.append(line);
 		      byte[] contentInBytes = line.getBytes();
-		      FileOutputStream fop = new FileOutputStream(file);
-		      fop.write(contentInBytes);
+		      File file = new File(path);
+		      FileOutputStream fop =null;
+	            // If file doesn't exists, then create it
+		      synchronized(lock)
+				{
+	            if (!file.exists()) 
+	            {
+	                file.createNewFile();
+	            }
+                fop = new FileOutputStream(file);
+		        fop.write(contentInBytes);
+				}
               fop.flush();
               fop.close();
+              
 		      //writer.write(contentInBytes);
 		        // must do this: .readLine() will have stripped line endings
 		        writer.newLine();
