@@ -17,7 +17,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.cert.X509Certificate;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Base64;
+import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -85,7 +88,7 @@ class XMLReader {
 	    	  if (OSName.indexOf("win") >= 0) {
 	    		  file= new File("E:\\XMLData\\exception.txt");
 	    		} else {
-	    			 file = new File("/XMLData/exception.txt");
+	    			 file = new File("/home/munir/Documents/XMLData/exception.txt");
 	    		}
 	         //File file = new File("E:\\XMLData\\exception.txt");
 	            // If file doesn't exists, then create it
@@ -96,6 +99,10 @@ class XMLReader {
 	         BufferedWriter out = new BufferedWriter(fstream);
 	         PrintWriter pWriter = new PrintWriter(out, true);
 	         pWriter.print("*****************--------New exception----------********************");
+	         pWriter.println();
+	         DateFormat dateFormat = new SimpleDateFormat("dd/MMM/yyyy HH:mm:ss");
+	         Date date = new Date();
+	         pWriter.print("As on "+dateFormat.format(date));
 	         pWriter.println();
 	         e.printStackTrace(pWriter);
 	      }
@@ -112,7 +119,7 @@ class XMLReader {
 	    	  if (OSName.indexOf("win") >= 0) {
 	    		  file= new File("E:\\XMLData\\Sample.xml");
 	    		} else {
-	    			 file = new File("/XMLData/Sample.xml");
+	    			 file = new File("/home/munir/Documents/XMLData/Sample.xml");
 	    		}
 			//File file = new File("E:\\XMLData\\Sample.xml");
 
@@ -134,7 +141,7 @@ class XMLReader {
 	    	  if (OSName.indexOf("win") >= 0) {
 	    		  fileParsed= new File("E:\\XMLData\\ParsedXML.txt");
 	    		} else {
-	    			fileParsed = new File("/XMLData/ParsedXML.txt");
+	    			fileParsed = new File("/home/munir/Documents/XMLData/ParsedXML.txt");
 	    		}
 	    	  if (!fileParsed.exists())
 	    	   {
@@ -202,11 +209,11 @@ class XMLReader {
 	
 	public static String executePost(String targetURL, String urlParameters) {
 		  HttpURLConnection connection = null;
-		  String path="E:\\XMLData\\Sample.xml";
+		  String path=null;
 		  if (OSName.indexOf("win") >= 0) {
 			  path="E:\\XMLData\\Sample.xml";
     		} else {
-    			path="/XMLData/Sample.xml";
+    			path="/home/munir/Documents/XMLData/Sample.xml";
     		}
 		  final Path dst = Paths.get(path);
 		  final BufferedWriter writer;
@@ -327,18 +334,27 @@ class XMLReader {
 			result= statusCode + "\n " + responseString;
 			
 		} catch (ClientProtocolException e) {
-			System.err.println("Unable to make connection");
-			e.printStackTrace();
+			//System.err.println("Unable to make connection");
+			//e.printStackTrace();
+			appendToFile(e);
 		} catch (IOException e) {
-			System.err.println("Unable to read file");
-			e.printStackTrace();
+			//System.err.println("Unable to read file");
+			//e.printStackTrace();
+			appendToFile(e);
 		} finally {
 			try {
 				if (fis != null) fis.close();
-			} catch (IOException e) {}
+			} 
+			catch (IOException e) 
+			{
+				appendToFile(e);
+			}
 		}
 		return result;
 	}
+	
+	
+	
 //    public static String ConsumeAPI()
 //    {
 //    	String result=null;
