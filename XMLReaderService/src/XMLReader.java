@@ -73,7 +73,7 @@ class XMLReader {
 	                public void run() {
 	                	executePost("https://192.168.1.77:5443/rest/events/openalarms","");
 	                	ParseXML();
-	                	String APIResults= UploadFileAPI();
+	                	//String APIResults= UploadFileAPI();
 	                   //Do your work
 	                }
 	            };
@@ -113,16 +113,26 @@ class XMLReader {
 	
 	public static void ParseXML()
 	{
-		
+		final Object lock = new Object();
 		try {
-			 File file;
+			 File file=null;
+			 synchronized(lock)
+			 {
+
+		 try {
 	    	  if (OSName.indexOf("win") >= 0) {
 	    		  file= new File("E:\\XMLData\\Sample.xml");
 	    		} else {
 	    			 file = new File("/home/munir/Documents/XMLData/Sample.xml");
 	    		}
+			    }
+	    	  catch (Exception e) 
+				{
+			    	appendToFile(e);
+				//System.out.println(e.getMessage());
+			    }
+			 }
 			//File file = new File("E:\\XMLData\\Sample.xml");
-
 			DocumentBuilder dBuilder = DocumentBuilderFactory.newInstance()
 		                             .newDocumentBuilder();
 
