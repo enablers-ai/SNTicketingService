@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.Reader;
+import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -21,6 +22,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;
+import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -34,6 +36,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -47,33 +50,38 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import com.google.gson.Gson;
+
 import java.io.InputStream;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 class XMLReader {
 	private static String OSName = null;
-	public static void main(String[] args)
+	static Configurations configPropeties= new Configurations();
+	public static void main(String[] args) throws IOException
 	{
 		OSName = System.getProperty("os.name").toLowerCase();
 		// TODO Auto-generated method stub
 		//parse();
-		startPollingTimer();
+		configPropeties= getconfigPropetiess();
+		String serverCompleteUrl= configPropeties.getServerAPIUrl()+configPropeties.getAlarmsActionUrl();
+		startPollingTimer(serverCompleteUrl);
 		//
 		//System.out.println(SimpleOutPut());
 		//System.out.println(executePost("https://192.168.1.77:5443/rest/events/openalarms",""));
-
+		//configPropeties= getconfigPropetiess();
 	}
 	
 	public static Timer t;
 
-	public static synchronized void startPollingTimer() {
+	public static synchronized void startPollingTimer(String serverCompleteUrl) {
 	        if (t == null) {
 	            TimerTask task = new TimerTask() {
 	                @Override
 	                public void run() {
-	                	executePost("https://192.168.1.77:5443/rest/events/openalarms","");
-	                	ParseXML();
-	                	//String APIResults= UploadFileAPI();
+	                	executePost(serverCompleteUrl,"");
+	                	//ParseXML();
+	                	String APIResults= UploadFileAPI();
 	                   //Do your work
 	                }
 	            };
@@ -85,10 +93,11 @@ class XMLReader {
 	 public static void appendToFile(Exception e) {
 	      try {
 	    	  File file;
+	    	  //Configurations configPropeties= getconfigPropetiess();
 	    	  if (OSName.indexOf("win") >= 0) {
-	    		  file= new File("E:\\XMLData\\exception.txt");
+	    		  file= new File(configPropeties.getWinndowsExceptionsPath());
 	    		} else {
-	    			 file = new File("/home/munir/Documents/XMLData/exception.txt");
+	    			 file = new File(configPropeties.getLinuxExceptionPath());
 	    		}
 	         //File file = new File("E:\\XMLData\\exception.txt");
 	            // If file doesn't exists, then create it
@@ -110,6 +119,45 @@ class XMLReader {
 	         throw new RuntimeException("Could not write Exception to file", ie);
 	      }
 	   }
+	 
+	 public static Configurations getconfigPropetiess() throws IOException {
+		 Configurations config =new Configurations();
+		 InputStream input = null;
+		 
+		    try {
+		    	Path currentRelativePath = Paths.get("");
+		    	String absolutePath = currentRelativePath.toAbsolutePath().toString();
+		        input = new FileInputStream(absolutePath + "/configurations.properties");
+		        StringWriter writer = new StringWriter();
+		        IOUtils.copy(input, writer, "UTF-8");
+		        String inputStr=writer.toString();
+		       //System.out.println(inputStr);
+		         Gson gson = new Gson();
+		         config = gson.fromJson(inputStr, Configurations.class);
+		         
+		         
+		        // load the properties file
+		        //prop.load(input);
+		 
+		    } 
+		    catch (IOException ex) {
+		    	appendToFile(ex);
+		        ex.printStackTrace();
+		    } 
+		    finally {
+		        if (input != null)
+		        {
+		            try {
+		                input.close();
+		            } catch (IOException e)
+		            {
+		                e.printStackTrace();
+		            }
+		        }
+		    }
+		    return config;
+	 }
+		        
 	
 	public static void ParseXML()
 	{
@@ -222,9 +270,9 @@ class XMLReader {
 		HttpURLConnection connection = null;
 		  String path=null;
 		  if (OSName.indexOf("win") >= 0) {
-			  path="E:\\XMLData\\Sample.xml";
+			  path=configPropeties.getlocalXMLPathWindows();
     		} else {
-    			path="/home/munir/Documents/XMLData/Sample.xml";
+    			path=configPropeties.getlocalXMLPathLinux();
     		}
 		  final Path dst = Paths.get(path);
 		  final BufferedWriter writer;
@@ -254,7 +302,7 @@ class XMLReader {
 		    //Create connection
 		    
 		    URL url = new URL(targetURL);
-		    String userCredentials = "muneer:muneer";
+		    String userCredentials = configPropeties.getSNUserName()+":"+configPropeties.getSNPassword();
 		    String basicAuth = "Basic " + new String(Base64.getEncoder().encode(userCredentials.getBytes()));
 		    HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
 		    connection = (HttpURLConnection) url.openConnection();
@@ -296,12 +344,12 @@ class XMLReader {
 		      File file = new File(path);
 		      FileOutputStream fop =null;
 	            // If file doesn't exists, then create it
-		      synchronized(lock)
-				{
-	            if (!file.exists()) 
+		      if (!file.exists()) 
 	            {
 	                file.createNewFile();
 	            }
+		      synchronized(lock)
+				{
                 fop = new FileOutputStream(file);
 		        fop.write(contentInBytes);
 				}
@@ -330,14 +378,19 @@ class XMLReader {
 	public static String UploadFileAPI()
 	{
 		String result=null;
-		File inFile = new File("E:\\XMLData\\Sample.xml");
+		File inFile =null;// new File(configPropeties.getlocalXMLPathWindows());
+		if (OSName.indexOf("win") >= 0) {
+			  inFile= new File(configPropeties.getlocalXMLPathWindows());
+  		} else {
+  			inFile=new File(configPropeties.getlocalXMLPathLinux());
+  		}
 		FileInputStream fis = null;
 		try {
 			fis = new FileInputStream(inFile);
 			DefaultHttpClient httpclient = new DefaultHttpClient(new BasicHttpParams());
 			
 			// server back-end URL
-			HttpPost httppost = new HttpPost("http://localhost:5797/api/FileUpload/Post");
+			HttpPost httppost = new HttpPost(configPropeties.getfileUploadUrl());
 			MultipartEntity entity = new MultipartEntity();
 			// set the file input stream and file name as arguments
 			entity.addPart("file", new InputStreamBody(fis, inFile.getName()));
