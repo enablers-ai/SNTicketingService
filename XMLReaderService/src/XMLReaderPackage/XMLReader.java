@@ -59,56 +59,50 @@ import java.io.InputStream;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 class XMLReader {
+
 	private static String OSName = null;
-	static Configurations configPropeties= new Configurations();
-	public static void main(String[] args) throws IOException
-	{
+	static Configurations configPropeties = new Configurations();
+	
+	public static void main(String[] args) throws IOException {
+		
 		OSName = System.getProperty("os.name").toLowerCase();
-		//System.out.println(OSName);
-		// TODO Auto-generated method stub
-		//parse();
+		
 		configPropeties= getconfigPropetiess();
 		String serverCompleteUrl= configPropeties.getServerAPIUrl()+configPropeties.getAlarmsActionUrl();
 		//executePost(serverCompleteUrl,"");
 		startPollingTimer(serverCompleteUrl);
 		//String APIResults= UploadFileAPI();
-		//
-		//System.out.println(SimpleOutPut());
-		//System.out.println(executePost("https://192.168.1.77:5443/rest/events/openalarms",""));
-		//configPropeties= getconfigPropetiess();
-		//stopPollingTimer();
 	}
-	
+
 	public static Timer t;
 
 	public static synchronized void startPollingTimer(String serverCompleteUrl) {
-	        if (t == null && configPropeties.getcontinueScheduler()==true) {
-	            TimerTask task = new TimerTask() {
-	                @Override
-	                public void run() {
-	                	executePost(serverCompleteUrl,"");
-	                	//ParseXML();
-	                	String APIResults= UploadFileAPI();
-	                	try 
-	                	{
-							configPropeties= getconfigPropetiess();
-						} catch (IOException ex)
-	                	{
-							appendToFile(ex);
-							ex.printStackTrace();
-						}
-	                	if(configPropeties.getcontinueScheduler()==false)
-	                	{
-	                		stopPollingTimer();
-	                	}
-	                   //Do your work
-	                }
-	            };
+		if (t == null && configPropeties.getcontinueScheduler() == true) {
+			TimerTask task = new TimerTask() {
+				@Override
+				public void run() {
+					executePost(serverCompleteUrl,"");
+					//ParseXML();
+					String APIResults= UploadFileAPI();
+					try 
+					{
+						configPropeties= getconfigPropetiess();
+					} catch (IOException ex)
+					{
+						appendToFile(ex);
+						ex.printStackTrace();
+					}
+					if(configPropeties.getcontinueScheduler()==false)
+					{
+						stopPollingTimer();
+					}
+				}
+			};
 
-	            t = new Timer();
-	            t.scheduleAtFixedRate(task, new Date(), 30000);
-	        }
-	    }
+			t = new Timer();
+			t.scheduleAtFixedRate(task, new Date(), 30000);
+		}
+	}
 	public static void stopPollingTimer()
 	{
 		if(t !=null)
@@ -120,145 +114,127 @@ class XMLReader {
 	{
 		stopPollingTimer();
 	}
-	 public static void appendToFile(Exception e) {
-	      try {
-	    	  File file;
-	    	  //Configurations configPropeties= getconfigPropetiess();
-	    	  if (OSName.indexOf("win") >= 0) {
-	    		  file= new File(configPropeties.getWinndowsExceptionsPath());
-	    		} else {
-	    			 file = new File(configPropeties.getLinuxExceptionPath());
-	    		}
-	         //File file = new File("E:\\XMLData\\exception.txt");
-	            // If file doesn't exists, then create it
-	            if (!file.exists()) {
-	                file.createNewFile();
-	            }
-	         FileWriter fstream = new FileWriter(file.getPath(), true);
-	         BufferedWriter out = new BufferedWriter(fstream);
-	         PrintWriter pWriter = new PrintWriter(out, true);
-	         pWriter.print("*****************--------New exception----------********************");
-	         pWriter.println();
-	         DateFormat dateFormat = new SimpleDateFormat("dd/MMM/yyyy HH:mm:ss");
-	         Date date = new Date();
-	         pWriter.print("As on "+dateFormat.format(date));
-	         pWriter.println();
-	         e.printStackTrace(pWriter);
-	      }
-	      catch (Exception ie) {
-	         throw new RuntimeException("Could not write Exception to file", ie);
-	      }
-	   }
-	 
-	 public static Configurations getconfigPropetiess() throws IOException {
-		 Configurations config =new Configurations();
-		 InputStream input = null;
-		 
-		    try {
-		    	//Path currentRelativePath = Paths.get("");
-		    	//String absolutePath = currentRelativePath.toAbsolutePath().toString();
-		    	 //File statText = new File("/root/Downloads/statsTest.txt");
-		    	 //FileOutputStream is = new FileOutputStream(statText);
-		           // OutputStreamWriter osw = new OutputStreamWriter(is);    
-		           // Writer w = new BufferedWriter(osw);
-		           // w.write(absolutePath +'\n');
-		    	 //System.out.println("/usr/local/bin/configurations.properties");
-		        //input = new FileInputStream("/root/Documents/configurations.properties");
-		    	input = new FileInputStream("C:\\Users\\Enablers\\git\\StableNetTicketingService\\XMLReaderService\\configurations.properties");
-		       
-		        //w.close();
-		        StringWriter writer = new StringWriter();
-		        IOUtils.copy(input, writer, "UTF-8");
-		        String inputStr=writer.toString();
-		       //System.out.println(inputStr);
-		         Gson gson = new Gson();
-		         config = gson.fromJson(inputStr, Configurations.class);
-		         //w.write(config.toString());
-		         
-		        // load the properties file
-		        //prop.load(input);
-		 
-		    } 
-		    catch (IOException ex) {
-		    	appendToFile(ex);
-		        ex.printStackTrace();
-		    } 
-		    finally {
-		        if (input != null)
-		        {
-		            try {
-		                input.close();
-		            } catch (IOException e)
-		            {
-		                e.printStackTrace();
-		            }
-		        }
-		    }
-		    return config;
-	 }
-		        
-	
+	public static void appendToFile(Exception e) {
+		try {
+			File file;
+			if (OSName.indexOf("win") >= 0) {
+				file= new File(configPropeties.getWinndowsExceptionsPath());
+			} else {
+				file = new File(configPropeties.getLinuxExceptionPath());
+			}
+			if (!file.exists()) {
+				file.createNewFile();
+			}
+			FileWriter fstream = new FileWriter(file.getPath(), true);
+			BufferedWriter out = new BufferedWriter(fstream);
+			PrintWriter pWriter = new PrintWriter(out, true);
+			pWriter.print("*****************--------New exception----------********************");
+			pWriter.println();
+			DateFormat dateFormat = new SimpleDateFormat("dd/MMM/yyyy HH:mm:ss");
+			Date date = new Date();
+			pWriter.print("As on "+dateFormat.format(date));
+			pWriter.println();
+			e.printStackTrace(pWriter);
+		}
+		catch (Exception ie) {
+			throw new RuntimeException("Could not write Exception to file", ie);
+		}
+	}
+
+	public static Configurations getconfigPropetiess() throws IOException {
+		Configurations config =new Configurations();
+		InputStream input = null;
+
+		try {
+			//Path currentRelativePath = Paths.get("");
+			//String absolutePath = currentRelativePath.toAbsolutePath().toString();
+			//input = new FileInputStream("/root/Documents/configurations.properties");
+			input = new FileInputStream("C:\\Users\\Enablers\\git\\StableNetTicketingService\\XMLReaderService\\configurations.properties");
+			StringWriter writer = new StringWriter();
+			IOUtils.copy(input, writer, "UTF-8");
+			String inputStr=writer.toString();
+			Gson gson = new Gson();
+			config = gson.fromJson(inputStr, Configurations.class);
+			//prop.load(input);
+
+		} 
+		catch (IOException ex) {
+			appendToFile(ex);
+			ex.printStackTrace();
+		} 
+		finally {
+			if (input != null){
+				try {
+					input.close();
+				} catch (IOException e)
+				{
+					e.printStackTrace();
+				}
+			}
+		}
+		return config;
+	}
+
+
 	public static void ParseXML()
 	{
 		final Object lock = new Object();
 		try {
-			 File file=null;
-			 synchronized(lock)
-			 {
+			File file=null;
+			synchronized(lock)
+			{
 
-		 try {
-	    	  if (OSName.indexOf("win") >= 0) {
-	    		  file= new File("E:\\XMLData\\Sample.xml");
-	    		} else {
-	    			 file = new File("/home/munir/Documents/XMLData/Sample.xml");
-	    		}
-			    }
-	    	  catch (Exception e) 
+				try {
+					if (OSName.indexOf("win") >= 0) {
+						file= new File("E:\\XMLData\\Sample.xml");
+					} else {
+						file = new File("/home/munir/Documents/XMLData/Sample.xml");
+					}
+				}
+				catch (Exception e) 
 				{
-			    	appendToFile(e);
-				//System.out.println(e.getMessage());
-			    }
-			 }
+					appendToFile(e);
+				}
+			}
 			//File file = new File("E:\\XMLData\\Sample.xml");
 			DocumentBuilder dBuilder = DocumentBuilderFactory.newInstance()
-		                             .newDocumentBuilder();
+					.newDocumentBuilder();
 
 			Document doc = dBuilder.parse(file);
-			 StringBuilder sb = new StringBuilder();
-			 sb.append("Root element :" + doc.getDocumentElement().getNodeName());
+			StringBuilder sb = new StringBuilder();
+			sb.append("Root element :" + doc.getDocumentElement().getNodeName());
 			//System.out.println("Root element :" + doc.getDocumentElement().getNodeName());
 
 			if (doc.hasChildNodes()) {
 
-			String res=	printNote(doc.getChildNodes());
-			sb.append(res);
+				String res=	printNote(doc.getChildNodes());
+				sb.append(res);
 			}
 			File fileParsed;
-			 
-	    	  if (OSName.indexOf("win") >= 0) {
-	    		  fileParsed= new File("E:\\XMLData\\ParsedXML.txt");
-	    		} else {
-	    			fileParsed = new File("/home/munir/Documents/XMLData/ParsedXML.txt");
-	    		}
-	    	  if (!fileParsed.exists())
-	    	   {
-	    		  fileParsed.createNewFile();
-	            }
-			try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileParsed))) {
-			    writer.write(sb.toString());
+
+			if (OSName.indexOf("win") >= 0) {
+				fileParsed= new File("E:\\XMLData\\ParsedXML.txt");
+			} else {
+				fileParsed = new File("/home/munir/Documents/XMLData/ParsedXML.txt");
 			}
-		    } catch (Exception e) 
+			if (!fileParsed.exists())
 			{
-		    	appendToFile(e);
-			//System.out.println(e.getMessage());
-		    }
+				fileParsed.createNewFile();
+			}
+			try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileParsed))) {
+				writer.write(sb.toString());
+			}
+		} catch (Exception e) 
+		{
+			appendToFile(e);
+		}
 
-		  }
+	}
 
-		  private static String printNote(NodeList nodeList) throws IOException {
-			  
-	    	  StringBuilder sb = new StringBuilder();
-		    for (int count = 0; count < nodeList.getLength(); count++) {
+	private static String printNote(NodeList nodeList) throws IOException {
+
+		StringBuilder sb = new StringBuilder();
+		for (int count = 0; count < nodeList.getLength(); count++) {
 
 			Node tempNode = nodeList.item(count);
 
@@ -291,7 +267,7 @@ class XMLReader {
 				if (tempNode.hasChildNodes()) {
 
 					// loop again if has child nodes
-					 String result= printNote(tempNode.getChildNodes());
+					String result= printNote(tempNode.getChildNodes());
 					sb.append(result);
 				}
 				sb.append("Node Name =" + tempNode.getNodeName() + " [CLOSE]");
@@ -300,135 +276,134 @@ class XMLReader {
 
 			}
 
-		    }
-		    return sb.toString();
+		}
+		return sb.toString();
 	}
-	
+
 	public static String executePost(String targetURL, String urlParameters) {
 		final Object lock = new Object();  
 		HttpURLConnection connection = null;
-		  String path=null;
-		  if (OSName.indexOf("win") >= 0) {
-			  path=configPropeties.getlocalXMLPathWindows();
-    		} else {
-    			path=configPropeties.getlocalXMLPathLinux();
-    		}
-		  final Path dst = Paths.get(path);
-		  final BufferedWriter writer;
-		  try {
-			  // Create a trust manager that does not validate certificate chains
-		        TrustManager[] trustAllCerts = new TrustManager[] {new X509TrustManager() {
-		                public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-		                    return null;
-		                }
-		                public void checkClientTrusted(X509Certificate[] certs, String authType) {
-		                }
-		                public void checkServerTrusted(X509Certificate[] certs, String authType) {
-		                }
-		            }
-		        };
-		        
-		     // Install the all-trusting trust manager
-		        SSLContext sc = SSLContext.getInstance("SSL");
-		        sc.init(null, trustAllCerts, new java.security.SecureRandom());
-		        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-		     // Create all-trusting host name verifier
-		        HostnameVerifier allHostsValid = new HostnameVerifier() {
-		            public boolean verify(String hostname, SSLSession session) {
-		                return true;
-		            }
-		        };
-		    //Create connection
-		    
-		    URL url = new URL(targetURL);
-		    String userCredentials = configPropeties.getSNUserName()+":"+configPropeties.getSNPassword();
-		    //String userCredentials = "infosim:stablenet";
-		    String basicAuth = "Basic " + new String(Base64.getEncoder().encode(userCredentials.getBytes()));
-		    HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
-		    connection = (HttpURLConnection) url.openConnection();
-		    
-		    connection.setRequestProperty ("Authorization", basicAuth);
-		    connection.setRequestMethod("GET");
-		    //connection.setRequestProperty("Content-Type", 
-		       // "application/xml");
-
-		    //connection.setRequestProperty("Content-Length", 
-		     //   Integer.toString(urlParameters.getBytes().length));
-		    //connection.setRequestProperty("Content-Language", "en-US");  
-
-		    //connection.setUseCaches(false);
-//		    connection.setDoOutput(true);
-
-		    //Send request
-//		    DataOutputStream wr = new DataOutputStream (
-//		        connection.getOutputStream());
-//		    wr.writeBytes(urlParameters);
-//		    wr.close();
-//		    Reader reader = new InputStreamReader(connection.getInputStream());
-//	        while (true) {
-//	            int ch = reader.read();
-//	            if (ch==-1) {
-//	                break;
-//	            }
-//	            System.out.println((char)ch);
-//	        }
-		    //Get Response  
-		    InputStream is = connection.getInputStream();
-		    BufferedReader rd = new BufferedReader(new InputStreamReader(is));
-            writer = Files.newBufferedWriter(dst, StandardCharsets.UTF_8);
-		    StringBuilder response = new StringBuilder(); // or StringBuffer if Java version 5+
-		    String line;
-		    while ((line = rd.readLine()) != null) {
-		      response.append(line);
-		      byte[] contentInBytes = line.getBytes();
-		      File file = new File(path);
-		      FileOutputStream fop =null;
-	            // If file doesn't exists, then create it
-		      if (!file.exists()) 
-	            {
-	                file.createNewFile();
-	            }
-		      synchronized(lock)
-				{
-                fop = new FileOutputStream(file);
-		        fop.write(contentInBytes);
-				}
-              fop.flush();
-              fop.close();
-              
-		      //writer.write(contentInBytes);
-		        // must do this: .readLine() will have stripped line endings
-		        writer.newLine();
-		      response.append('\r');
-		    }
-		    rd.close();
-		    return response.toString();
-		  } 
-		  catch (Exception e)
-		  {
-			  appendToFile(e);
-		    //e.printStackTrace();
-		    return null;
-		  } finally {
-		    if (connection != null) {
-		      connection.disconnect();
-		    }
-		  }
+		String path=null;
+		if (OSName.indexOf("win") >= 0) {
+			path=configPropeties.getlocalXMLPathWindows();
+		} else {
+			path=configPropeties.getlocalXMLPathLinux();
 		}
+		final Path dst = Paths.get(path);
+		final BufferedWriter writer;
+		try {
+			// Create a trust manager that does not validate certificate chains
+			TrustManager[] trustAllCerts = new TrustManager[] {new X509TrustManager() {
+				public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+					return null;
+				}
+				public void checkClientTrusted(X509Certificate[] certs, String authType) {
+				}
+				public void checkServerTrusted(X509Certificate[] certs, String authType) {
+				}
+			}
+			};
+
+			// Install the all-trusting trust manager
+			SSLContext sc = SSLContext.getInstance("SSL");
+			sc.init(null, trustAllCerts, new java.security.SecureRandom());
+			HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+			// Create all-trusting host name verifier
+			HostnameVerifier allHostsValid = new HostnameVerifier() {
+				public boolean verify(String hostname, SSLSession session) {
+					return true;
+				}
+			};
+			//Create connection
+
+			URL url = new URL(targetURL);
+			String userCredentials = configPropeties.getSNUserName()+":"+configPropeties.getSNPassword();
+			//String userCredentials = "infosim:stablenet";
+			String basicAuth = "Basic " + new String(Base64.getEncoder().encode(userCredentials.getBytes()));
+			HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+			connection = (HttpURLConnection) url.openConnection();
+
+			connection.setRequestProperty ("Authorization", basicAuth);
+			connection.setRequestMethod("GET");
+			//connection.setRequestProperty("Content-Type", 
+			// "application/xml");
+
+			//connection.setRequestProperty("Content-Length", 
+			//   Integer.toString(urlParameters.getBytes().length));
+			//connection.setRequestProperty("Content-Language", "en-US");  
+
+			//connection.setUseCaches(false);
+			//		    connection.setDoOutput(true);
+
+			//Send request
+			//		    DataOutputStream wr = new DataOutputStream (
+			//		        connection.getOutputStream());
+			//		    wr.writeBytes(urlParameters);
+			//		    wr.close();
+			//		    Reader reader = new InputStreamReader(connection.getInputStream());
+			//	        while (true) {
+			//	            int ch = reader.read();
+			//	            if (ch==-1) {
+			//	                break;
+			//	            }
+			//	            System.out.println((char)ch);
+			//	        }
+			//Get Response  
+			InputStream is = connection.getInputStream();
+			BufferedReader rd = new BufferedReader(new InputStreamReader(is));
+			writer = Files.newBufferedWriter(dst, StandardCharsets.UTF_8);
+			StringBuilder response = new StringBuilder(); // or StringBuffer if Java version 5+
+			String line;
+			while ((line = rd.readLine()) != null) {
+				response.append(line);
+				byte[] contentInBytes = line.getBytes();
+				File file = new File(path);
+				FileOutputStream fop =null;
+				// If file doesn't exists, then create it
+				if (!file.exists()) {
+					file.createNewFile();
+				}
+				synchronized(lock)
+				{
+					fop = new FileOutputStream(file);
+					fop.write(contentInBytes);
+				}
+				fop.flush();
+				fop.close();
+
+				//writer.write(contentInBytes);
+				// must do this: .readLine() will have stripped line endings
+				writer.newLine();
+				response.append('\r');
+			}
+			rd.close();
+			return response.toString();
+		} 
+		catch (Exception e)
+		{
+			appendToFile(e);
+			//e.printStackTrace();
+			return null;
+		} finally {
+			if (connection != null) {
+				connection.disconnect();
+			}
+		}
+	}
 	public static String UploadFileAPI()
 	{
 		String result=null;
-		File inFile =null;// new File(configPropeties.getlocalXMLPathWindows());
+		File inFile =null;
 		if (OSName.indexOf("win") >= 0) {
-			  inFile= new File(configPropeties.getlocalXMLPathWindows());
-  		} else {
-  			inFile=new File(configPropeties.getlocalXMLPathLinux());
-  		}
+			inFile= new File(configPropeties.getlocalXMLPathWindows());
+		} else {
+			inFile=new File(configPropeties.getlocalXMLPathLinux());
+		}
 		FileInputStream fis = null;
 		try {
 			fis = new FileInputStream(inFile);
 			DefaultHttpClient httpclient = new DefaultHttpClient(new BasicHttpParams());
-			
+
 			// server back-end URL
 			HttpPost httppost = new HttpPost(configPropeties.getfileUploadUrl());
 			MultipartEntity entity = new MultipartEntity();
@@ -437,12 +412,12 @@ class XMLReader {
 			httppost.setEntity(entity);
 			// execute the request
 			HttpResponse response = httpclient.execute(httppost);
-			
+
 			int statusCode = response.getStatusLine().getStatusCode();
 			HttpEntity responseEntity = response.getEntity();
 			String responseString = EntityUtils.toString(responseEntity, "UTF-8");
 			result= statusCode + "\n " + responseString;
-			
+
 		} catch (ClientProtocolException e) {
 			//System.err.println("Unable to make connection");
 			//e.printStackTrace();
@@ -462,45 +437,4 @@ class XMLReader {
 		}
 		return result;
 	}
-	
-	
-	
-//    public static String ConsumeAPI()
-//    {
-//    	String result=null;
-//    	 URL url;
-//		try {
-//			url = new URL("http://api.timezonedb.com/v2/list-time-zone?key=LQY1SS2O2Z4L&amp;format=json&amp;country=NG");
-//			//your url i.e fetch data from .
-//           
-//           try {
-//        	   HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-//   			conn = (HttpURLConnection) url.openConnection();
-//            conn.setRequestMethod("GET");
-//            conn.setRequestProperty("Accept", "application/json");
-//            if (conn.getResponseCode() != 200) {
-//            	result="Failure";
-//                throw new RuntimeException("Failed : HTTP Error code : "
-//                        + conn.getResponseCode());
-//            }
-//            InputStreamReader in = new InputStreamReader(conn.getInputStream());
-//            BufferedReader br = new BufferedReader(in);
-//            String output;
-//            result="Success";
-//            while ((output = br.readLine()) != null) {
-//                System.out.println(output);
-//            }
-//   		} 
-//           catch (IOException e)
-//           {
-//   			// TODO Auto-generated catch block
-//   			e.printStackTrace();
-//   		   }
-//		} catch (MalformedURLException e) {
-//			// TODO Auto-generated catch block
-//		e.printStackTrace();
-//		}//your url i.e fetch data from .
-//         
-//    	return result;
-//    }
 }
