@@ -1,3 +1,4 @@
+package XMLReaderPackage;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.DataOutputStream;
@@ -7,9 +8,11 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringWriter;
+import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -61,35 +64,62 @@ class XMLReader {
 	public static void main(String[] args) throws IOException
 	{
 		OSName = System.getProperty("os.name").toLowerCase();
+		//System.out.println(OSName);
 		// TODO Auto-generated method stub
 		//parse();
 		configPropeties= getconfigPropetiess();
 		String serverCompleteUrl= configPropeties.getServerAPIUrl()+configPropeties.getAlarmsActionUrl();
+		//executePost(serverCompleteUrl,"");
 		startPollingTimer(serverCompleteUrl);
+		//String APIResults= UploadFileAPI();
 		//
 		//System.out.println(SimpleOutPut());
 		//System.out.println(executePost("https://192.168.1.77:5443/rest/events/openalarms",""));
 		//configPropeties= getconfigPropetiess();
+		//stopPollingTimer();
 	}
 	
 	public static Timer t;
 
 	public static synchronized void startPollingTimer(String serverCompleteUrl) {
-	        if (t == null) {
+	        if (t == null && configPropeties.getcontinueScheduler()==true) {
 	            TimerTask task = new TimerTask() {
 	                @Override
 	                public void run() {
 	                	executePost(serverCompleteUrl,"");
 	                	//ParseXML();
 	                	String APIResults= UploadFileAPI();
+	                	try 
+	                	{
+							configPropeties= getconfigPropetiess();
+						} catch (IOException ex)
+	                	{
+							appendToFile(ex);
+							ex.printStackTrace();
+						}
+	                	if(configPropeties.getcontinueScheduler()==false)
+	                	{
+	                		stopPollingTimer();
+	                	}
 	                   //Do your work
 	                }
 	            };
 
 	            t = new Timer();
-	            t.scheduleAtFixedRate(task, 0, 30000);
+	            t.scheduleAtFixedRate(task, new Date(), 30000);
 	        }
 	    }
+	public static void stopPollingTimer()
+	{
+		if(t !=null)
+		{
+			t.cancel();
+		}
+	}
+	protected void finalize() throws Throwable   
+	{
+		stopPollingTimer();
+	}
 	 public static void appendToFile(Exception e) {
 	      try {
 	    	  File file;
@@ -125,16 +155,25 @@ class XMLReader {
 		 InputStream input = null;
 		 
 		    try {
-		    	Path currentRelativePath = Paths.get("");
-		    	String absolutePath = currentRelativePath.toAbsolutePath().toString();
-		        input = new FileInputStream(absolutePath + "/configurations.properties");
+		    	//Path currentRelativePath = Paths.get("");
+		    	//String absolutePath = currentRelativePath.toAbsolutePath().toString();
+		    	 //File statText = new File("/root/Downloads/statsTest.txt");
+		    	 //FileOutputStream is = new FileOutputStream(statText);
+		           // OutputStreamWriter osw = new OutputStreamWriter(is);    
+		           // Writer w = new BufferedWriter(osw);
+		           // w.write(absolutePath +'\n');
+		    	 //System.out.println("/usr/local/bin/configurations.properties");
+		        input = new FileInputStream("/root/Documents/configurations.properties");
+		    	//input = new FileInputStream("C:\\Users\\Enablers\\git\\StableNetTicketingService\\XMLReaderService\\configurations.properties");
+		       
+		        //w.close();
 		        StringWriter writer = new StringWriter();
 		        IOUtils.copy(input, writer, "UTF-8");
 		        String inputStr=writer.toString();
 		       //System.out.println(inputStr);
 		         Gson gson = new Gson();
 		         config = gson.fromJson(inputStr, Configurations.class);
-		         
+		         //w.write(config.toString());
 		         
 		        // load the properties file
 		        //prop.load(input);
@@ -303,6 +342,7 @@ class XMLReader {
 		    
 		    URL url = new URL(targetURL);
 		    String userCredentials = configPropeties.getSNUserName()+":"+configPropeties.getSNPassword();
+		    //String userCredentials = "infosim:stablenet";
 		    String basicAuth = "Basic " + new String(Base64.getEncoder().encode(userCredentials.getBytes()));
 		    HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
 		    connection = (HttpURLConnection) url.openConnection();

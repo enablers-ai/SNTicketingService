@@ -1,3 +1,4 @@
+package XMLReaderPackage;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
@@ -38,6 +39,11 @@ public class Configurations {
 		@SerializedName("SNPassword")
 		@Expose
 		private String SNPassword;
+		//continueScheduler
+		@SerializedName("continueScheduler")
+		@Expose
+		private boolean continueScheduler;
+		
 		//WinndowsExceptionsPath
 		public String getWinndowsExceptionsPath() {
 		return winndowsExceptionsPath;
@@ -107,5 +113,13 @@ public class Configurations {
 
 		public void setSNPassword(String SNPassword) {
 		this.SNPassword = SNPassword;
+		}
+		//continueScheduler
+		public boolean getcontinueScheduler() {
+		return continueScheduler;
+		}
+
+		public void setcontinueScheduler(boolean continueScheduler) {
+		this.continueScheduler = continueScheduler;
 		}
 }
