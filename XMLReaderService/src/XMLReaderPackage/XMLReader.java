@@ -62,7 +62,9 @@ class XMLReader {
 
 	private static String OSName = null;
 	static Configurations configPropeties = new Configurations();
-	
+	//Main Method 
+	//Calling getconfigPropetiess method
+	//Calling startPollingTimer
 	public static void main(String[] args) throws IOException {
 		
 		OSName = System.getProperty("os.name").toLowerCase();
@@ -73,9 +75,10 @@ class XMLReader {
 		startPollingTimer(serverCompleteUrl);
 		//String APIResults= UploadFileAPI();
 	}
-
+	// static timer's variable.
 	public static Timer t;
-
+	// Synchronized static timer repeating method.
+	// Repeating call of UploadFileAPI method after specified time in configuration property callRepeateTime
 	public static synchronized void startPollingTimer(String serverCompleteUrl) {
 		if (t == null && configPropeties.getcontinueScheduler() == true) {
 			TimerTask task = new TimerTask() {
@@ -100,9 +103,10 @@ class XMLReader {
 			};
 
 			t = new Timer();
-			t.scheduleAtFixedRate(task, new Date(), 30000);
+			t.scheduleAtFixedRate(task, new Date(), configPropeties.getCallRepeateTime());
 		}
 	}
+	// Used to check if time is already running then stop it.
 	public static void stopPollingTimer()
 	{
 		if(t !=null)
@@ -110,6 +114,7 @@ class XMLReader {
 			t.cancel();
 		}
 	}
+	// Calling stopPollingTimer on exit.
 	protected void finalize() throws Throwable   
 	{
 		stopPollingTimer();
@@ -140,7 +145,7 @@ class XMLReader {
 			throw new RuntimeException("Could not write Exception to file", ie);
 		}
 	}
-
+	// Reads and returns configurations properties.
 	public static Configurations getconfigPropetiess() throws IOException {
 		Configurations config =new Configurations();
 		InputStream input = null;
@@ -175,7 +180,7 @@ class XMLReader {
 		return config;
 	}
 
-
+	//Parsing XML File.
 	public static void ParseXML()
 	{
 		final Object lock = new Object();
@@ -230,7 +235,7 @@ class XMLReader {
 		}
 
 	}
-
+//Used to print/write xml data.
 	private static String printNote(NodeList nodeList) throws IOException {
 
 		StringBuilder sb = new StringBuilder();
@@ -279,7 +284,7 @@ class XMLReader {
 		}
 		return sb.toString();
 	}
-
+	// Calling stableNet's server API for provided url and parameters for that URL.
 	public static String executePost(String targetURL, String urlParameters) {
 		final Object lock = new Object();  
 		HttpURLConnection connection = null;
@@ -390,6 +395,8 @@ class XMLReader {
 			}
 		}
 	}
+	
+	//Upload XML to API specified in configurations file.
 	public static String UploadFileAPI()
 	{
 		String result=null;
