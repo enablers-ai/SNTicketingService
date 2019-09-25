@@ -43,7 +43,10 @@ public class Configurations {
 		@SerializedName("continueScheduler")
 		@Expose
 		private boolean continueScheduler;
-		
+		//callRepeateTime
+		@SerializedName("callRepeateTime")
+		@Expose
+		private int callRepeateTime;
 		//WinndowsExceptionsPath
 		public String getWinndowsExceptionsPath() {
 		return winndowsExceptionsPath;
@@ -121,5 +124,13 @@ public class Configurations {
 
 		public void setcontinueScheduler(boolean continueScheduler) {
 		this.continueScheduler = continueScheduler;
+		}
+		//callRepeateTime
+		public int getCallRepeateTime() {
+		return callRepeateTime;
+		}
+
+		public void setCallRepeateTime(int callRepeateTime) {
+		this.callRepeateTime = callRepeateTime;
 		}
 }

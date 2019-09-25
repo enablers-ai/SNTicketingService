@@ -163,8 +163,8 @@ class XMLReader {
 		           // Writer w = new BufferedWriter(osw);
 		           // w.write(absolutePath +'\n');
 		    	 //System.out.println("/usr/local/bin/configurations.properties");
-		        input = new FileInputStream("/root/Documents/configurations.properties");
-		    	//input = new FileInputStream("C:\\Users\\Enablers\\git\\StableNetTicketingService\\XMLReaderService\\configurations.properties");
+		        //input = new FileInputStream("/root/Documents/configurations.properties");
+		    	input = new FileInputStream("C:\\Users\\Enablers\\git\\StableNetTicketingService\\XMLReaderService\\configurations.properties");
 		       
 		        //w.close();
 		        StringWriter writer = new StringWriter();
