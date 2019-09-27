@@ -72,9 +72,9 @@ class XMLReader {
 		
 		configPropeties= getconfigPropetiess();
 		String serverCompleteUrl= configPropeties.getServerAPIUrl()+configPropeties.getAlarmsActionUrl();
-		ParseXML();
+		//ParseXML();
 		//executePost(serverCompleteUrl,"");
-		//startPollingTimer(serverCompleteUrl, configPropeties.getCallRepeateTime()); 
+		startPollingTimer(serverCompleteUrl, configPropeties.getCallRepeateTime()); 
 	}
 	// static timer's variable.
 	public static Timer t;
@@ -87,7 +87,7 @@ class XMLReader {
 				public void run() {
 					try 
 					{
-					//executePost(serverCompleteUrl,"");
+					executePost(serverCompleteUrl,"");
 					ParseXML();
 					String APIResults= UploadFileAPI();
 					//System.out.println(APIResults);
@@ -328,7 +328,7 @@ class XMLReader {
 
 					// loop again if has child nodes
 					String result= printNote(tempNode.getChildNodes());
-					System.out.println(result);
+					//System.out.println(result);
 					sb.append(result);
 				}
 				//sb.append("Node Name =" + tempNode.getNodeName() + " [CLOSE]");
@@ -461,9 +461,9 @@ class XMLReader {
 		String result=null;
 		File inFile =null;
 		if (OSName.indexOf("win") >= 0) {
-			inFile= new File(configPropeties.getlocalXMLPathWindows());
+			inFile= new File(configPropeties.getParsedXMLPathWindows());
 		} else {
-			inFile=new File(configPropeties.getTestFilePath());
+			inFile=new File(configPropeties.getParsedXMLPathLinux());
 		}
 		FileInputStream fis = null;
 		try {
