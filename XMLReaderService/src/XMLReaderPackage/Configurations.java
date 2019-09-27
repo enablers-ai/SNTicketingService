@@ -46,7 +46,19 @@ public class Configurations {
 		//callRepeateTime
 		@SerializedName("callRepeateTime")
 		@Expose
-		private int callRepeateTime;
+		private long callRepeateTime;
+		//testFilePath
+		@SerializedName("testFilePath")
+		@Expose
+		private String testFilePath;
+		//parsedXMLPathWindows
+		@SerializedName("parsedXMLPathWindows")
+		@Expose
+		private String parsedXMLPathWindows;
+		//parsedXMLPathLinux
+		@SerializedName("parsedXMLPathLinux")
+		@Expose
+		private String parsedXMLPathLinux;
 		//WinndowsExceptionsPath
 		public String getWinndowsExceptionsPath() {
 		return winndowsExceptionsPath;
@@ -126,11 +138,35 @@ public class Configurations {
 		this.continueScheduler = continueScheduler;
 		}
 		//callRepeateTime
-		public int getCallRepeateTime() {
+		public long getCallRepeateTime() {
 		return callRepeateTime;
 		}
 
-		public void setCallRepeateTime(int callRepeateTime) {
+		public void setCallRepeateTime(long callRepeateTime) {
 		this.callRepeateTime = callRepeateTime;
+		}
+		//testFilePath
+		public String getTestFilePath() {
+		return testFilePath;
+		}
+
+		public void setTestFilePath(String testFilePath) {
+		this.testFilePath = testFilePath;
+		}
+		//parsedXMLPathWindows
+		public String getParsedXMLPathWindows() {
+		return parsedXMLPathWindows;
+		}
+
+		public void setParsedXMLPathWindows(String parsedXMLPathWindows) {
+		this.parsedXMLPathWindows = parsedXMLPathWindows;
+		}
+		//parsedXMLPathLinux
+		public String getParsedXMLPathLinux() {
+		return parsedXMLPathLinux;
+		}
+
+		public void setParsedXMLPathLinux(String parsedXMLPathLinux) {
+		this.parsedXMLPathLinux = parsedXMLPathLinux;
 		}
 }

@@ -16,6 +16,7 @@ import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -71,39 +72,47 @@ class XMLReader {
 		
 		configPropeties= getconfigPropetiess();
 		String serverCompleteUrl= configPropeties.getServerAPIUrl()+configPropeties.getAlarmsActionUrl();
+		ParseXML();
 		//executePost(serverCompleteUrl,"");
-		startPollingTimer(serverCompleteUrl);
-		//String APIResults= UploadFileAPI();
+		//startPollingTimer(serverCompleteUrl, configPropeties.getCallRepeateTime()); 
 	}
 	// static timer's variable.
 	public static Timer t;
 	// Synchronized static timer repeating method.
 	// Repeating call of UploadFileAPI method after specified time in configuration property callRepeateTime
-	public static synchronized void startPollingTimer(String serverCompleteUrl) {
+	public static synchronized void startPollingTimer(String serverCompleteUrl, long timePeriod) {
 		if (t == null && configPropeties.getcontinueScheduler() == true) {
 			TimerTask task = new TimerTask() {
 				@Override
 				public void run() {
-					executePost(serverCompleteUrl,"");
-					//ParseXML();
-					String APIResults= UploadFileAPI();
 					try 
 					{
-						configPropeties= getconfigPropetiess();
-					} catch (IOException ex)
+					//executePost(serverCompleteUrl,"");
+					ParseXML();
+					String APIResults= UploadFileAPI();
+					//System.out.println(APIResults);
+					}
+					catch(Exception ex)
 					{
 						appendToFile(ex);
-						ex.printStackTrace();
 					}
-					if(configPropeties.getcontinueScheduler()==false)
-					{
-						stopPollingTimer();
-					}
+					//try 
+					//{
+						//configPropeties= getconfigPropetiess();
+					//} catch (IOException ex)
+					//{
+						//appendToFile(ex);
+						//ex.printStackTrace();
+					//}
+					//if(configPropeties.getcontinueScheduler()==false)
+					//{
+						//stopPollingTimer();
+					//}
 				}
 			};
 
 			t = new Timer();
-			t.scheduleAtFixedRate(task, new Date(), configPropeties.getCallRepeateTime());
+			t.scheduleAtFixedRate(task, new Date(), timePeriod);
 		}
 	}
 	// Used to check if time is already running then stop it.
@@ -153,10 +162,20 @@ class XMLReader {
 		try {
 			//Path currentRelativePath = Paths.get("");
 			//String absolutePath = currentRelativePath.toAbsolutePath().toString();
-			//input = new FileInputStream("/root/Documents/configurations.properties");
+			//String UTF_Encoding="UTF-8";
+			if (OSName.indexOf("win") >= 0) 
+			{
+				//UTF_Encoding="UTF-8";
 			input = new FileInputStream("C:\\Users\\Enablers\\git\\StableNetTicketingService\\XMLReaderService\\configurations.properties");
+			}
+			else
+			{
+				input = new FileInputStream("/root/Documents/configurations.properties");
+				//UTF_Encoding="ISO-8859-1";
+			}
 			StringWriter writer = new StringWriter();
-			IOUtils.copy(input, writer, "UTF-8");
+			//ISO-8859-1 
+			IOUtils.copy(input, writer, StandardCharsets.UTF_8);
 			String inputStr=writer.toString();
 			Gson gson = new Gson();
 			config = gson.fromJson(inputStr, Configurations.class);
@@ -191,9 +210,9 @@ class XMLReader {
 
 				try {
 					if (OSName.indexOf("win") >= 0) {
-						file= new File("E:\\XMLData\\Sample.xml");
+						file= new File(configPropeties.getlocalXMLPathWindows());
 					} else {
-						file = new File("/home/munir/Documents/XMLData/Sample.xml");
+						file = new File(configPropeties.getlocalXMLPathLinux());
 					}
 				}
 				catch (Exception e) 
@@ -207,20 +226,28 @@ class XMLReader {
 
 			Document doc = dBuilder.parse(file);
 			StringBuilder sb = new StringBuilder();
-			sb.append("Root element :" + doc.getDocumentElement().getNodeName());
+			//sb.append("Root element :" + doc.getDocumentElement().getNodeName());
+			sb.append("<?xml version=\"1.0\"?>\r\n");
+			sb.append("<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns=\"http://schemas.hp.com/SM/7\" xmlns:com=\"http://schemas.hp.com/SM/7/Common\" xmlns:xm=\"http://www.w3.org/2005/05/xmlmime\">\r\n" + 
+					"<soapenv:Header/>\r\n" + 
+					"<soapenv:Body>\r\n");
 			//System.out.println("Root element :" + doc.getDocumentElement().getNodeName());
-
-			if (doc.hasChildNodes()) {
-
+			
+			if (doc.hasChildNodes()) 
+			{
 				String res=	printNote(doc.getChildNodes());
 				sb.append(res);
 			}
+			sb.append("</soapenv:Body>\r\n" + 
+					"</soapenv:Envelope>");
 			File fileParsed;
 
 			if (OSName.indexOf("win") >= 0) {
-				fileParsed= new File("E:\\XMLData\\ParsedXML.txt");
-			} else {
-				fileParsed = new File("/home/munir/Documents/XMLData/ParsedXML.txt");
+				fileParsed= new File(configPropeties.getParsedXMLPathWindows());
+			} 
+			else
+			{
+				fileParsed = new File(configPropeties.getParsedXMLPathLinux());
 			}
 			if (!fileParsed.exists())
 			{
@@ -237,45 +264,74 @@ class XMLReader {
 	}
 //Used to print/write xml data.
 	private static String printNote(NodeList nodeList) throws IOException {
-
 		StringBuilder sb = new StringBuilder();
 		for (int count = 0; count < nodeList.getLength(); count++) {
 
 			Node tempNode = nodeList.item(count);
-
 			// make sure it's element node.
-			if (tempNode.getNodeType() == Node.ELEMENT_NODE) {
-
+			if (tempNode.getNodeType() == Node.ELEMENT_NODE) 
+			{
+				String nodeName=tempNode.getNodeName();
 				// get node name and value
-				sb.append("\nNode Name =" + tempNode.getNodeName() + " [OPEN]");
+				//sb.append("\nNode Name =" + tempNode.getNodeName() + " [OPEN]");
 				//System.out.println("\nNode Name =" + tempNode.getNodeName() + " [OPEN]");
 				//System.out.println("Node Value =" + tempNode.getTextContent());
-				sb.append("Node Value =" + tempNode.getTextContent());
-
-				if (tempNode.hasAttributes()) {
+				//sb.append("Node Value =" + tempNode.getTextContent());
+				if(nodeName=="rootcause")
+				{
+					sb.append("<ns:CreateIncidentRequest>\r\n" + 
+							"         <ns:model>\r\n" + 
+							"            <ns:keys>\r\n" + 
+							"               <ns:IncidentID type=\"String\">\r\n" +
+							"				</ns:IncidentID>\r\n"+ 
+							"            </ns:keys>\r\n" + 
+							"            <ns:instance>\r\n"+
+							"<ns:Title type=\"String\">test from SOAP UI</ns:Title>\r\n"+
+							"<ns:Description type=\"Array\">\r\n");
+					String severity="";
+				if (tempNode.hasAttributes())
+				{
 
 					// get attributes names and values
 					NamedNodeMap nodeMap = tempNode.getAttributes();
+					
 
 					for (int i = 0; i < nodeMap.getLength(); i++) {
-
+						
 						Node node = nodeMap.item(i);
-						sb.append("attr name : " + node.getNodeName());
-						//System.out.println("attr name : " + node.getNodeName());
-						//System.out.println("attr value : " + node.getNodeValue());
-						sb.append("attr value : " + node.getNodeValue());
+						if(node.getNodeName()=="severity")
+						{
+							severity=node.getNodeValue();
+						}
+						else
+						{
+						sb.append("<ns:Description type=\"String\" >"+node.getNodeValue()+"</ns:Description>\r\n");
+						//sb.append("attr value : " + node.getNodeValue());
+						}
 
 					}
-
+				}
+				sb.append("<ns:Area type=\"String\" >Stablenet</ns:Area>\r\n");
+				sb.append("<ns:Subarea type=\"String\" >Alarm</ns:Subarea>\r\n");
+				sb.append("<ns:Urgency type=\"String\" >"+severity+"</ns:Urgency>\r\n ");
+				sb.append("<ns:AssignmentGroup type=\"String\" >ROP HELPDESK</ns:AssignmentGroup>\r\n");
+				sb.append("<ns:Service type=\"String\" >CI1001366</ns:Service>\r\n");
+				sb.append("<ns:Service type=\"String\">CI1001366</ns:Service>\r\n");
+				sb.append("<ns:Impact type=\"String\">1</ns:Impact>\r\n");
+				sb.append("</ns:instance>\r\n" +  
+						"</ns:model>\r\n");
+				sb.append("</ns:CreateIncidentRequest>\r\n");
 				}
 
-				if (tempNode.hasChildNodes()) {
+				if (tempNode.hasChildNodes()) 
+				{
 
 					// loop again if has child nodes
 					String result= printNote(tempNode.getChildNodes());
+					System.out.println(result);
 					sb.append(result);
 				}
-				sb.append("Node Name =" + tempNode.getNodeName() + " [CLOSE]");
+				//sb.append("Node Name =" + tempNode.getNodeName() + " [CLOSE]");
 				//FileWriter fstream = new FileWriter(fileParsed.getPath(), true);
 				//System.out.println("Node Name =" + tempNode.getNodeName() + " [CLOSE]");
 
@@ -289,9 +345,11 @@ class XMLReader {
 		final Object lock = new Object();  
 		HttpURLConnection connection = null;
 		String path=null;
-		if (OSName.indexOf("win") >= 0) {
+		if (OSName.indexOf("win") >= 0) 
+		{
 			path=configPropeties.getlocalXMLPathWindows();
-		} else {
+		} else
+		{
 			path=configPropeties.getlocalXMLPathLinux();
 		}
 		final Path dst = Paths.get(path);
@@ -314,7 +372,8 @@ class XMLReader {
 			sc.init(null, trustAllCerts, new java.security.SecureRandom());
 			HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
 			// Create all-trusting host name verifier
-			HostnameVerifier allHostsValid = new HostnameVerifier() {
+			HostnameVerifier allHostsValid = new HostnameVerifier()
+			{
 				public boolean verify(String hostname, SSLSession session) {
 					return true;
 				}
@@ -404,7 +463,7 @@ class XMLReader {
 		if (OSName.indexOf("win") >= 0) {
 			inFile= new File(configPropeties.getlocalXMLPathWindows());
 		} else {
-			inFile=new File(configPropeties.getlocalXMLPathLinux());
+			inFile=new File(configPropeties.getTestFilePath());
 		}
 		FileInputStream fis = null;
 		try {
