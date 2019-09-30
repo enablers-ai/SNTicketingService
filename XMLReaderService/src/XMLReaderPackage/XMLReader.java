@@ -288,7 +288,7 @@ class XMLReader {
 							"            <ns:instance>\r\n"+
 							"<ns:Title type=\"String\">test from SOAP UI</ns:Title>\r\n"+
 							"<ns:Description type=\"Array\">\r\n");
-					String severity="";
+					int severityInt=0;
 				if (tempNode.hasAttributes())
 				{
 
@@ -301,7 +301,16 @@ class XMLReader {
 						Node node = nodeMap.item(i);
 						if(node.getNodeName()=="severity")
 						{
+							String severity="";
 							severity=node.getNodeValue();
+							if(severity.toLowerCase()=="critical")
+								severityInt=1;
+							else if(severity.toLowerCase()=="major")
+								severityInt=2;
+							else if(severity.toLowerCase()=="marginal")
+								severityInt=3;
+							else
+								severityInt=4;
 						}
 						else
 						{
@@ -313,10 +322,10 @@ class XMLReader {
 				}
 				sb.append("<ns:Area type=\"String\" >Stablenet</ns:Area>\r\n");
 				sb.append("<ns:Subarea type=\"String\" >Alarm</ns:Subarea>\r\n");
-				sb.append("<ns:Urgency type=\"String\" >"+severity+"</ns:Urgency>\r\n ");
+				sb.append("<ns:Urgency type=\"String\" >"+severityInt+"</ns:Urgency>\r\n ");
 				sb.append("<ns:AssignmentGroup type=\"String\" >ROP HELPDESK</ns:AssignmentGroup>\r\n");
 				sb.append("<ns:Service type=\"String\" >CI1001366</ns:Service>\r\n");
-				sb.append("<ns:Service type=\"String\">CI1001366</ns:Service>\r\n");
+				//sb.append("<ns:Service type=\"String\">CI1001366</ns:Service>\r\n");
 				sb.append("<ns:Impact type=\"String\">1</ns:Impact>\r\n");
 				sb.append("</ns:instance>\r\n" +  
 						"</ns:model>\r\n");
