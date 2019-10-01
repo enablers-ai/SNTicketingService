@@ -59,6 +59,14 @@ public class Configurations {
 		@SerializedName("parsedXMLPathLinux")
 		@Expose
 		private String parsedXMLPathLinux;
+		//webServiceUserName
+		@SerializedName("webServiceUserName")
+		@Expose
+		private String webServiceUserName;
+		//webServicePassword
+		@SerializedName("webServicePassword")
+		@Expose
+		private String webServicePassword;
 		//WinndowsExceptionsPath
 		public String getWinndowsExceptionsPath() {
 		return winndowsExceptionsPath;
@@ -168,5 +176,21 @@ public class Configurations {
 
 		public void setParsedXMLPathLinux(String parsedXMLPathLinux) {
 		this.parsedXMLPathLinux = parsedXMLPathLinux;
+		}
+		//webServiceUserName
+		public String getWebServiceUserName() {
+		return parsedXMLPathLinux;
+		}
+
+		public void setWebServiceUserName(String webServiceUserName) {
+		this.webServiceUserName = webServiceUserName;
+		}
+		//webServicePassword
+		public String getWebServicePassword() {
+		return parsedXMLPathLinux;
+		}
+
+		public void setWebServicePassword(String webServicePassword) {
+		this.webServicePassword = webServicePassword;
 		}
 }

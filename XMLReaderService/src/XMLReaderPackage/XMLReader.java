@@ -36,6 +36,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
+import javax.xml.bind.DatatypeConverter;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -320,6 +321,8 @@ class XMLReader {
 
 					}
 				}
+				sb.append("</ns:Description>\r\n");
+				sb.append(" <ns:Category type=\"String\" >Incident</ns:Category>\r\n");
 				sb.append("<ns:Area type=\"String\" >Stablenet</ns:Area>\r\n");
 				sb.append("<ns:Subarea type=\"String\" >Alarm</ns:Subarea>\r\n");
 				sb.append("<ns:Urgency type=\"String\" >"+severityInt+"</ns:Urgency>\r\n ");
@@ -478,10 +481,15 @@ class XMLReader {
 		try {
 			fis = new FileInputStream(inFile);
 			DefaultHttpClient httpclient = new DefaultHttpClient(new BasicHttpParams());
-
+			//httpclient.
 			// server back-end URL
 			HttpPost httppost = new HttpPost(configPropeties.getfileUploadUrl());
 			MultipartEntity entity = new MultipartEntity();
+			//String encoding = Base64Encoder.encode("" + ":" + "");
+			//String encoding = Base64.getEncoder().encodeToString(("test1:test1").getBytes(‌"UTF‌​-8"​));
+			String UNPass=configPropeties.getWebServiceUserName()+":"+configPropeties.getWebServicePassword();
+			String encoding = DatatypeConverter.printBase64Binary(UNPass.getBytes("UTF-8"));
+			httppost.setHeader("Authorization", "Basic " + encoding);
 			// set the file input stream and file name as arguments
 			entity.addPart("file", new InputStreamBody(fis, inFile.getName()));
 			httppost.setEntity(entity);
