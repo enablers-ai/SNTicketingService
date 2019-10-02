@@ -67,6 +67,10 @@ public class Configurations {
 		@SerializedName("webServicePassword")
 		@Expose
 		private String webServicePassword;
+		//webServiceInitialLink
+		@SerializedName("webServiceInitialLink")
+		@Expose
+		private String webServiceInitialLink;
 		//WinndowsExceptionsPath
 		public String getWinndowsExceptionsPath() {
 		return winndowsExceptionsPath;
@@ -179,7 +183,7 @@ public class Configurations {
 		}
 		//webServiceUserName
 		public String getWebServiceUserName() {
-		return parsedXMLPathLinux;
+		return webServiceUserName;
 		}
 
 		public void setWebServiceUserName(String webServiceUserName) {
@@ -187,10 +191,18 @@ public class Configurations {
 		}
 		//webServicePassword
 		public String getWebServicePassword() {
-		return parsedXMLPathLinux;
+		return webServicePassword;
 		}
 
 		public void setWebServicePassword(String webServicePassword) {
 		this.webServicePassword = webServicePassword;
+		}
+		//webServiceInitialLink
+		public String getWebServiceInitialLink() {
+		return webServiceInitialLink;
+		}
+
+		public void setWebServiceInitialLink(String webServiceInitialLink) {
+		this.webServiceInitialLink = webServiceInitialLink;
 		}
 }

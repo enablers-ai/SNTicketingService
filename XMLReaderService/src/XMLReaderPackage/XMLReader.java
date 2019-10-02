@@ -40,14 +40,20 @@ import javax.xml.bind.DatatypeConverter;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.soap.SOAPConnection;
+import javax.xml.soap.SOAPConnectionFactory;
+import javax.xml.soap.SOAPException;
+import javax.xml.soap.SOAPMessage;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.InputStreamBody;
+import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.util.EntityUtils;
@@ -73,9 +79,10 @@ class XMLReader {
 		
 		configPropeties= getconfigPropetiess();
 		String serverCompleteUrl= configPropeties.getServerAPIUrl()+configPropeties.getAlarmsActionUrl();
-		//ParseXML();
+		ParseXML();
 		//executePost(serverCompleteUrl,"");
-		startPollingTimer(serverCompleteUrl, configPropeties.getCallRepeateTime()); 
+		//String ApiResult= UploadFileAPI();
+		//startPollingTimer(serverCompleteUrl, configPropeties.getCallRepeateTime()); 
 	}
 	// static timer's variable.
 	public static Timer t;
@@ -90,7 +97,7 @@ class XMLReader {
 					{
 					executePost(serverCompleteUrl,"");
 					ParseXML();
-					String APIResults= UploadFileAPI();
+					//String APIResults= UploadFileAPI();
 					//System.out.println(APIResults);
 					}
 					catch(Exception ex)
@@ -228,10 +235,10 @@ class XMLReader {
 			Document doc = dBuilder.parse(file);
 			StringBuilder sb = new StringBuilder();
 			//sb.append("Root element :" + doc.getDocumentElement().getNodeName());
-			sb.append("<?xml version=\"1.0\"?>\r\n");
-			sb.append("<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns=\"http://schemas.hp.com/SM/7\" xmlns:com=\"http://schemas.hp.com/SM/7/Common\" xmlns:xm=\"http://www.w3.org/2005/05/xmlmime\">\r\n" + 
-					"<soapenv:Header/>\r\n" + 
-					"<soapenv:Body>\r\n");
+			//sb.append("<?xml version=\"1.0\"?>\r\n");
+			//sb.append("<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns=\"http://schemas.hp.com/SM/7\" xmlns:com=\"http://schemas.hp.com/SM/7/Common\" xmlns:xm=\"http://www.w3.org/2005/05/xmlmime\">\r\n" + 
+					//"<soapenv:Header/>\r\n" + 
+					//"<soapenv:Body>\r\n");
 			//System.out.println("Root element :" + doc.getDocumentElement().getNodeName());
 			
 			if (doc.hasChildNodes()) 
@@ -239,8 +246,8 @@ class XMLReader {
 				String res=	printNote(doc.getChildNodes());
 				sb.append(res);
 			}
-			sb.append("</soapenv:Body>\r\n" + 
-					"</soapenv:Envelope>");
+			//sb.append("</soapenv:Body>\r\n" + 
+					//"</soapenv:Envelope>");
 			File fileParsed;
 
 			if (OSName.indexOf("win") >= 0) {
@@ -264,7 +271,7 @@ class XMLReader {
 
 	}
 //Used to print/write xml data.
-	private static String printNote(NodeList nodeList) throws IOException {
+	private static String printNote(NodeList nodeList) throws IOException, UnsupportedOperationException, SOAPException {
 		StringBuilder sb = new StringBuilder();
 		for (int count = 0; count < nodeList.getLength(); count++) {
 
@@ -283,13 +290,13 @@ class XMLReader {
 					sb.append("<ns:CreateIncidentRequest>\r\n" + 
 							"         <ns:model>\r\n" + 
 							"            <ns:keys>\r\n" + 
-							"               <ns:IncidentID type=\"String\">\r\n" +
-							"				</ns:IncidentID>\r\n"+ 
+							"               <ns:IncidentID type=\"String\"></ns:IncidentID>\r\n"+ 
 							"            </ns:keys>\r\n" + 
 							"            <ns:instance>\r\n"+
 							"<ns:Title type=\"String\">test from SOAP UI</ns:Title>\r\n"+
 							"<ns:Description type=\"Array\">\r\n");
 					int severityInt=0;
+					long alarmId=0;
 				if (tempNode.hasAttributes())
 				{
 
@@ -313,6 +320,10 @@ class XMLReader {
 							else
 								severityInt=4;
 						}
+						else if(node.getNodeName()=="alarmid")
+						{
+							alarmId=Long.parseLong(node.getNodeValue());
+						}
 						else
 						{
 						sb.append("<ns:Description type=\"String\" >"+node.getNodeValue()+"</ns:Description>\r\n");
@@ -330,18 +341,30 @@ class XMLReader {
 				sb.append("<ns:Service type=\"String\" >CI1001366</ns:Service>\r\n");
 				//sb.append("<ns:Service type=\"String\">CI1001366</ns:Service>\r\n");
 				sb.append("<ns:Impact type=\"String\">1</ns:Impact>\r\n");
+				sb.append(" <ns:ExternalID type=\"String\" >"+alarmId+"</ns:ExternalID\r\n>");
 				sb.append("</ns:instance>\r\n" +  
 						"</ns:model>\r\n");
 				sb.append("</ns:CreateIncidentRequest>\r\n");
 				}
-
 				if (tempNode.hasChildNodes()) 
 				{
 
 					// loop again if has child nodes
-					String result= printNote(tempNode.getChildNodes());
+					String result= "";
+					result=printNote(tempNode.getChildNodes());
+					if(result != null && !result.isEmpty())
+					{
+						sb.append("<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns=\"http://schemas.hp.com/SM/7\" xmlns:com=\"http://schemas.hp.com/SM/7/Common\" xmlns:xm=\"http://www.w3.org/2005/05/xmlmime\">\r\n" + 
+								"<soapenv:Header/>\r\n" + 
+								"<soapenv:Body>\r\n");
+						sb.append(result);
+						sb.append("</soapenv:Body>\r\n" + 
+								"</soapenv:Envelope>");
+						UploadFileAPI(sb.toString());
+						//System.out.println(sb.toString());
+					}
 					//System.out.println(result);
-					sb.append(result);
+					//sb.append(result);
 				}
 				//sb.append("Node Name =" + tempNode.getNodeName() + " [CLOSE]");
 				//FileWriter fstream = new FileWriter(fileParsed.getPath(), true);
@@ -468,7 +491,7 @@ class XMLReader {
 	}
 	
 	//Upload XML to API specified in configurations file.
-	public static String UploadFileAPI()
+	public static String UploadFileAPI(String strXML) throws UnsupportedOperationException, SOAPException
 	{
 		String result=null;
 		File inFile =null;
@@ -479,23 +502,46 @@ class XMLReader {
 		}
 		FileInputStream fis = null;
 		try {
+			
+		        //return parseKlanten(response.getSOAPBody());
 			fis = new FileInputStream(inFile);
-			DefaultHttpClient httpclient = new DefaultHttpClient(new BasicHttpParams());
+			//DefaultHttpClient httpclient = new DefaultHttpClient(new BasicHttpParams());
 			//httpclient.
+			//HttpGet httpGet = new HttpGet(configPropeties.getWebServiceInitialLink());
 			// server back-end URL
-			HttpPost httppost = new HttpPost(configPropeties.getfileUploadUrl());
+			String UNPass=configPropeties.getWebServiceUserName()+":"+configPropeties.getWebServicePassword();
+			//System.out.println(UNPass);
+			String encoding = DatatypeConverter.printBase64Binary(UNPass.getBytes("UTF-8"));
+			//httpGet.setHeader("Authorization", "Basic " + encoding);
+			//HttpResponse responseInit = httpclient.execute(httpGet);
+			//System.out.println(responseInit);
+			//int statusCodeInit = responseInit.getStatusLine().getStatusCode();
+			//HttpEntity responseEntityInit = responseInit.getEntity();
+			//String responseStringInit = EntityUtils.toString(responseEntityInit, "UTF-8");
+			//result= statusCodeInit + "\n " + responseStringInit;
+			//
+			//To DO From Tomorrow. TOday 02-oct-2019.
+			/*
+			 * SOAPConnectionFactory soapConnectionFactory =
+			 * SOAPConnectionFactory.newInstance(); SOAPConnection soapConnection =
+			 * soapConnectionFactory.createConnection(); String url =
+			 * configPropeties.getfileUploadUrl(); //SOAPMessage message = ; SOAPMessage
+			 * responses = soapConnection.call(null, url);
+			 */
+			//
+			DefaultHttpClient httpclientPost = new DefaultHttpClient(new BasicHttpParams());
+			HttpPost httppostTicket = new HttpPost(configPropeties.getfileUploadUrl());
+			httppostTicket.setHeader("Authorization", "Basic " + encoding);
 			MultipartEntity entity = new MultipartEntity();
 			//String encoding = Base64Encoder.encode("" + ":" + "");
-			//String encoding = Base64.getEncoder().encodeToString(("test1:test1").getBytes(‌"UTF‌​-8"​));
-			String UNPass=configPropeties.getWebServiceUserName()+":"+configPropeties.getWebServicePassword();
-			String encoding = DatatypeConverter.printBase64Binary(UNPass.getBytes("UTF-8"));
-			httppost.setHeader("Authorization", "Basic " + encoding);
+			//String encoding = Base64.getEncoder().encodeToString(("test1:test1").getBytes(‌"UTF‌​-8"​));			
 			// set the file input stream and file name as arguments
-			entity.addPart("file", new InputStreamBody(fis, inFile.getName()));
-			httppost.setEntity(entity);
+			//entity.addPart("file", new InputStreamBody(fis, inFile.getName()));
+			entity.addPart("", new StringBody(strXML));
+			httppostTicket.setEntity(entity);
 			// execute the request
-			HttpResponse response = httpclient.execute(httppost);
-
+			HttpResponse response = httpclientPost.execute(httppostTicket);
+			System.out.println(response);
 			int statusCode = response.getStatusLine().getStatusCode();
 			HttpEntity responseEntity = response.getEntity();
 			String responseString = EntityUtils.toString(responseEntity, "UTF-8");
@@ -505,7 +551,8 @@ class XMLReader {
 			//System.err.println("Unable to make connection");
 			//e.printStackTrace();
 			appendToFile(e);
-		} catch (IOException e) {
+		} catch (IOException e)
+		{
 			//System.err.println("Unable to read file");
 			//e.printStackTrace();
 			appendToFile(e);
