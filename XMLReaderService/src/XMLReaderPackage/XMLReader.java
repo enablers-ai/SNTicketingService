@@ -31,6 +31,10 @@ import java.util.Date;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -280,8 +284,8 @@ class XMLReader {
 
 	}
 //Used to print/write xml data.
-	private static String printNote(NodeList nodeList) throws IOException, UnsupportedOperationException, SOAPException {
-		StringBuilder sb = new StringBuilder();
+	private static  String printNote(NodeList nodeList) throws IOException, UnsupportedOperationException, SOAPException {
+		String result = "";
 		for (int count = 0; count < nodeList.getLength(); count++) {
 
 			Node tempNode = nodeList.item(count);
@@ -296,104 +300,53 @@ class XMLReader {
 				//sb.append("Node Value =" + tempNode.getTextContent());
 				if(nodeName=="rootcause")
 				{
-					sb.append("<ns:CreateIncidentRequest>\r\n" + 
-							"         <ns:model>\r\n" + 
-							"            <ns:keys>\r\n" + 
-							"               <ns:IncidentID type=\"String\"></ns:IncidentID>\r\n"+ 
-							"            </ns:keys>\r\n" + 
-							"            <ns:instance>\r\n"+
-							"<ns:Title type=\"String\">test from SOAP UI</ns:Title>\r\n"+
-							"<ns:Description type=\"Array\">\r\n");
-					int severityInt=0;
-					long alarmId=0;
-				if (tempNode.hasAttributes())
-				{
-
-					// get attributes names and values
-					NamedNodeMap nodeMap = tempNode.getAttributes();
-					
-
-					for (int i = 0; i < nodeMap.getLength(); i++) {
-						
-						Node node = nodeMap.item(i);
-						if(node.getNodeName()=="severity")
-						{
-							String severity="";
-							severity=node.getNodeValue();
-							if(severity.toLowerCase()=="critical")
-								severityInt=1;
-							else if(severity.toLowerCase()=="major")
-								severityInt=2;
-							else if(severity.toLowerCase()=="marginal")
-								severityInt=3;
-							else
-								severityInt=4;
-						}
-						else if(node.getNodeName()=="alarmid")
-						{
-							alarmId=Long.parseLong(node.getNodeValue());
-						}
-						else
-						{
-						sb.append("<ns:Description type=\"String\" >"+node.getNodeValue()+"</ns:Description>\r\n");
-						//sb.append("attr value : " + node.getNodeValue());
-						}
-
-					}
-				}
-				sb.append("</ns:Description>\r\n");
-				sb.append(" <ns:Category type=\"String\" >Incident</ns:Category>\r\n");
-				sb.append("<ns:Area type=\"String\" >Stablenet</ns:Area>\r\n");
-				sb.append("<ns:Subarea type=\"String\" >Alarm</ns:Subarea>\r\n");
-				sb.append("<ns:Urgency type=\"String\" >"+severityInt+"</ns:Urgency>\r\n ");
-				sb.append("<ns:AssignmentGroup type=\"String\" >ROP HELPDESK</ns:AssignmentGroup>\r\n");
-				sb.append("<ns:Service type=\"String\" >CI1001366</ns:Service>\r\n");
-				//sb.append("<ns:Service type=\"String\">CI1001366</ns:Service>\r\n");
-				sb.append("<ns:Impact type=\"String\">1</ns:Impact>\r\n");
-				sb.append(" <ns:ExternalID type=\"String\" >"+alarmId+"</ns:ExternalID\r\n>");
-				sb.append("</ns:instance>\r\n" +  
-						"</ns:model>\r\n");
-				sb.append("</ns:CreateIncidentRequest>\r\n");
+					result=getNodesData(tempNode);
 				}
 				if (tempNode.hasChildNodes()) 
 				{
 
 					// loop again if has child nodes
-					String result= "";
 					result=printNote(tempNode.getChildNodes());
-					if(result != null && !result.isEmpty())
-					{
-						sb.append("<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns=\"http://schemas.hp.com/SM/7\" xmlns:com=\"http://schemas.hp.com/SM/7/Common\" xmlns:xm=\"http://www.w3.org/2005/05/xmlmime\">\r\n" + 
-								"<soapenv:Header/>\r\n" + 
-								"<soapenv:Body>\r\n");
-						sb.append(result);
-						sb.append("</soapenv:Body>\r\n" + 
-								"</soapenv:Envelope>");
+					
+//						if(count==3)
+//						{
+//							break;
+//						}
+//						if(count != nodeList.getLength())
+//						{
+//						sb.append("</soapenv:Body>\r\n" + 
+//								"</soapenv:Envelope>");
+//						}
+						//System.out.println(sb.toString());
+						System.out.println("\n");
+						//ExecutorService pool = Executors.newFixedThreadPool(count);
 						//UploadFileAPI(sb.toString());
-						callSoapWebService(sb.toString());
-						File fileParsed;
-
-						if (OSName.indexOf("win") >= 0) {
-							fileParsed= new File(configPropeties.getParsedXMLPathWindows());
-						} 
-						else
-						{
-							fileParsed = new File(configPropeties.getParsedXMLPathLinux());
-						}
-						if (!fileParsed.exists())
-						{
-							fileParsed.createNewFile();
-						}
-						try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileParsed))) {
-							DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-							Date date = new Date();
-							writer.write("\n New request on" +(dateFormat.format(date))+ "\n");
-							writer.write(sb.toString());
-						}
-					catch (Exception e) 
-					{
-						appendToFile(e);
-					}
+						//pool.submit(UploadFileAPI(sb.toString())).get();
+						//callSoapWebService(sb.toString());
+						//sb=null;
+//						File fileParsed;
+//
+//						if (OSName.indexOf("win") >= 0) {
+//							fileParsed= new File(configPropeties.getParsedXMLPathWindows());
+//						} 
+//						else
+//						{
+//							fileParsed = new File(configPropeties.getParsedXMLPathLinux());
+//						}
+//						if (!fileParsed.exists())
+//						{
+//							fileParsed.createNewFile();
+//						}
+//						try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileParsed))) {
+//							DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+//							Date date = new Date();
+//							writer.write("\n New request on" +(dateFormat.format(date))+ "\n");
+//							writer.write(sb.toString());
+//						}
+//					catch (Exception e) 
+//					{
+//						appendToFile(e);
+//					}
 						//System.out.println(sb.toString());
 					}
 					//System.out.println(result);
@@ -403,11 +356,89 @@ class XMLReader {
 				//FileWriter fstream = new FileWriter(fileParsed.getPath(), true);
 				//System.out.println("Node Name =" + tempNode.getNodeName() + " [CLOSE]");
 
+		}
+		return result;
+	}
+	
+	public static String getNodesData(Node tempNode)//NamedNodeMap nnm)
+	{
+		boolean sendRequest=false;
+		StringBuilder sb = new StringBuilder();
+		sb.append("<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns=\"http://schemas.hp.com/SM/7\" xmlns:com=\"http://schemas.hp.com/SM/7/Common\" xmlns:xm=\"http://www.w3.org/2005/05/xmlmime\">\r\n" + 
+				"<soapenv:Header/>\r\n" + 
+				"<soapenv:Body>\r\n");
+		sb.append("<ns:CreateIncidentRequest>\r\n" + 
+				"         <ns:model>\r\n" + 
+				"            <ns:keys>\r\n" + 
+				"               <ns:IncidentID type=\"String\"></ns:IncidentID>\r\n"+ 
+				"            </ns:keys>\r\n" + 
+				"            <ns:instance>\r\n"+
+				"<ns:Title type=\"String\">test from SOAP UI</ns:Title>\r\n"+
+				"<ns:Description type=\"Array\">\r\n");
+		int severityInt=0;
+		long alarmId=0;
+	if (tempNode.hasAttributes())
+	{
+
+		// get attributes names and values
+		NamedNodeMap nodeMap = tempNode.getAttributes();
+		
+
+		for (int i = 0; i < nodeMap.getLength(); i++) {
+			
+			Node node = nodeMap.item(i);
+			if(node.getNodeName()=="severity")
+			{
+				String severity="";
+				severity=node.getNodeValue();
+				if(severity.toLowerCase()=="critical")
+					severityInt=1;
+				else if(severity.toLowerCase()=="major")
+					severityInt=2;
+				else if(severity.toLowerCase()=="marginal")
+					severityInt=3;
+				else
+					severityInt=4;
+			}
+			else if(node.getNodeName()=="alarmid")
+			{
+				alarmId=Long.parseLong(node.getNodeValue());
+			}
+			else
+			{
+			sb.append("<ns:Description type=\"String\" >"+node.getNodeValue()+"</ns:Description>\r\n");
+			//sb.append("attr value : " + node.getNodeValue());
 			}
 
 		}
-		return sb.toString();
+		sendRequest=true;
 	}
+	sb.append("</ns:Description>\r\n");
+	sb.append(" <ns:Category type=\"String\">Incident</ns:Category>\r\n");
+	sb.append("<ns:Area type=\"String\">Stablenet</ns:Area>\r\n");
+	sb.append("<ns:Subarea type=\"String\">Alarm</ns:Subarea>\r\n");
+	sb.append("<ns:Urgency type=\"String\">"+severityInt+"</ns:Urgency>\r\n ");
+	sb.append("<ns:AssignmentGroup type=\"String\" >ROP HELPDESK</ns:AssignmentGroup>\r\n");
+	sb.append("<ns:Service type=\"String\">CI1001366</ns:Service>\r\n");
+	//sb.append("<ns:Service type=\"String\">CI1001366</ns:Service>\r\n");
+	sb.append("<ns:Impact type=\"String\">1</ns:Impact>\r\n");
+	sb.append("<ns:ExternalID type=\"String\">"+alarmId+"</ns:ExternalID>\r\n");
+	sb.append("</ns:instance>\r\n" +  
+			"</ns:model>\r\n");
+	sb.append("</ns:CreateIncidentRequest>\r\n");
+	//if(result.indexOf("</soapenv:Body>")==-1)
+		sb.append("</soapenv:Body>\r\n" + 
+				"</soapenv:Envelope>");
+		if(sendRequest)
+		{
+			callSoapWebService(sb.toString());
+			//System.out.println(sb.toString());
+		}
+		//callSoapWebService(sb.toString());
+		String result="";
+		return result;
+	}
+	
 	// Calling stableNet's server API for provided url and parameters for that URL.
 	public static String executePost(String targetURL, String urlParameters) {
 		final Object lock = new Object();  
@@ -524,7 +555,7 @@ class XMLReader {
 	}
 	
 	//Upload XML to API specified in configurations file.
-	public static String UploadFileAPI(String strXML) throws UnsupportedOperationException, SOAPException
+	public static synchronized String UploadFileAPI(String strXML) throws UnsupportedOperationException, SOAPException
 	{
 		String result=null;
 		//File inFile =null;
@@ -537,19 +568,19 @@ class XMLReader {
 			
 		        //return parseKlanten(response.getSOAPBody());
 			//fis = new FileInputStream(inFile);
-			DefaultHttpClient httpclient = new DefaultHttpClient(new BasicHttpParams());
+			//DefaultHttpClient httpclient = new DefaultHttpClient(new BasicHttpParams());
 			//httpclient.
-			HttpGet httpGet = new HttpGet(configPropeties.getWebServiceInitialLink());
+			//HttpGet httpGet = new HttpGet(configPropeties.getWebServiceInitialLink());
 			// server back-end URL
 			String UNPass=configPropeties.getWebServiceUserName()+":"+configPropeties.getWebServicePassword();
 			//System.out.println(UNPass);
 			String encoding = DatatypeConverter.printBase64Binary(UNPass.getBytes("UTF-8"));
-			httpGet.setHeader("Authorization", "Basic " + encoding);
-			HttpResponse responseInit = httpclient.execute(httpGet);
-			int statusCode =responseInit.getStatusLine().getStatusCode();
-			HttpEntity responseEntity =responseInit.getEntity(); 
-			String responseString =EntityUtils.toString(responseEntity, "UTF-8");
-			System.out.println(statusCode +" \n"+responseEntity+" \n"+ responseString);
+			//httpGet.setHeader("Authorization", "Basic " + encoding);
+			//HttpResponse responseInit = httpclient.execute(httpGet);
+			//int statusCode =responseInit.getStatusLine().getStatusCode();
+			//HttpEntity responseEntity =responseInit.getEntity(); 
+			//String responseString =EntityUtils.toString(responseEntity, "UTF-8");
+			//System.out.println(statusCode +" \n"+responseEntity+" \n"+ responseString);
 			//int statusCodeInit = responseInit.getStatusLine().getStatusCode();
 			//HttpEntity responseEntityInit = responseInit.getEntity();
 			//String responseStringInit = EntityUtils.toString(responseEntityInit, "UTF-8");
@@ -665,7 +696,7 @@ class XMLReader {
         soapBodyElem1.addTextNode("New York");
     }
 
-    private static void callSoapWebService(String strXML) {
+    private static synchronized void callSoapWebService(String strXML) {
     	//String soapEndpointUrl, String soapAction
         try {
             // Create SOAP Connection
@@ -675,13 +706,14 @@ class XMLReader {
             String soapAction = configPropeties.getfileUploadUrl();//"http://www.webserviceX.NET/GetInfoByCity";
             // Send SOAP Message to SOAP Server
             SOAPMessage soapResponse = soapConnection.call(createSOAPRequest(soapAction, strXML), soapEndpointUrl);
-
+            TimeUnit.MILLISECONDS.sleep(5000);
             // Print the SOAP Response
+            
             System.out.println("Response SOAP Message:");
             soapResponse.writeTo(System.out);
             System.out.println();
-
             soapConnection.close();
+            TimeUnit.MILLISECONDS.sleep(200);
         } catch (Exception e) {
             System.err.println("\nError occurred while sending SOAP Request to Server!\nMake sure you have the correct endpoint URL and SOAPAction!\n");
             e.printStackTrace();
@@ -694,7 +726,7 @@ class XMLReader {
         MimeHeaders hd = new MimeHeaders();
 		String encoding = DatatypeConverter.printBase64Binary(UNPass.getBytes("UTF-8"));
         hd.addHeader("Authorization", "Basic " + encoding);
-        hd.addHeader("CreateIncident", soapAction);
+        hd.addHeader("SOAPAction", soapAction);
 		SOAPMessage msg = messageFactory.createMessage(hd, new ByteArrayInputStream(strXML.getBytes()));
        // SOAPMessage soapMessage = messageFactory.createMessage();
 
@@ -711,5 +743,15 @@ class XMLReader {
         System.out.println("\n");
         return msg;
     }
+public class UploadAPIMethod implements Callable<String>
+{
+
+	@Override
+	public String call() throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
 	
 }
+}
+
