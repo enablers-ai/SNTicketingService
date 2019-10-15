@@ -364,6 +364,16 @@ class XMLReader {
 	{
 		boolean sendRequest=false;
 		StringBuilder sb = new StringBuilder();
+//		sb.append("<request-data>\r\n" + 
+//				"  <soap-rpc-request>\r\n" + 
+//				"    <soap-url>"+configPropeties.getWebServiceInitialLink()+"</soap-url>\r\n" + 
+//				"    <username>"+configPropeties.getWebServiceUserName()+"</username>\r\n" + 
+//				"    <password>"+configPropeties.getWebServicePassword()+"</password>\r\n" + 
+//				"    <soap-action>"+configPropeties.getfileUploadUrl()+"</soap-action>\r\n" + 
+//				"    <soap-version>1.1</soap-version>\r\n" + 
+//				"    <chunked-encoding>true</chunked-encoding>\r\n" + 
+//				"    <soap-header-content />\r\n" + 
+//				"    <soap-body-content>");
 		sb.append("<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns=\"http://schemas.hp.com/SM/7\" xmlns:com=\"http://schemas.hp.com/SM/7/Common\" xmlns:xm=\"http://www.w3.org/2005/05/xmlmime\">\r\n" + 
 				"<soapenv:Header/>\r\n" + 
 				"<soapenv:Body>\r\n");
@@ -429,6 +439,9 @@ class XMLReader {
 	//if(result.indexOf("</soapenv:Body>")==-1)
 		sb.append("</soapenv:Body>\r\n" + 
 				"</soapenv:Envelope>");
+//		sb.append("</soap-body-content>\r\n" + 
+//				" </soap-rpc-request>\r\n" + 
+//				"</request-data>");
 		if(sendRequest)
 		{
 			callSoapWebService(sb.toString());
@@ -726,7 +739,7 @@ class XMLReader {
         MimeHeaders hd = new MimeHeaders();
 		String encoding = DatatypeConverter.printBase64Binary(UNPass.getBytes("UTF-8"));
         hd.addHeader("Authorization", "Basic " + encoding);
-        hd.addHeader("SOAPAction", soapAction);
+        hd.addHeader("SOAPAction", soapAction+"ws");
 		SOAPMessage msg = messageFactory.createMessage(hd, new ByteArrayInputStream(strXML.getBytes()));
        // SOAPMessage soapMessage = messageFactory.createMessage();
 
