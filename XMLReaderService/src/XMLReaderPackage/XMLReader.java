@@ -181,9 +181,6 @@ class XMLReader {
 		InputStream input = null;
 
 		try {
-			//Path currentRelativePath = Paths.get("");
-			//String absolutePath = currentRelativePath.toAbsolutePath().toString();
-			//String UTF_Encoding="UTF-8";
 			if (OSName.indexOf("win") >= 0) 
 			{
 				//UTF_Encoding="UTF-8";
@@ -241,26 +238,17 @@ class XMLReader {
 					appendToFile(e);
 				}
 			}
-			//File file = new File("E:\\XMLData\\Sample.xml");
 			DocumentBuilder dBuilder = DocumentBuilderFactory.newInstance()
 					.newDocumentBuilder();
 
 			Document doc = dBuilder.parse(file);
 			StringBuilder sb = new StringBuilder();
-			//sb.append("Root element :" + doc.getDocumentElement().getNodeName());
-			//sb.append("<?xml version=\"1.0\"?>\r\n");
-			//sb.append("<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns=\"http://schemas.hp.com/SM/7\" xmlns:com=\"http://schemas.hp.com/SM/7/Common\" xmlns:xm=\"http://www.w3.org/2005/05/xmlmime\">\r\n" + 
-					//"<soapenv:Header/>\r\n" + 
-					//"<soapenv:Body>\r\n");
-			//System.out.println("Root element :" + doc.getDocumentElement().getNodeName());
 			
 			if (doc.hasChildNodes()) 
 			{
 				String res=	printNote(doc.getChildNodes());
 				sb.append(res);
 			}
-			//sb.append("</soapenv:Body>\r\n" + 
-					//"</soapenv:Envelope>");
 			File fileParsed;
 
 			if (OSName.indexOf("win") >= 0) {
@@ -293,11 +281,6 @@ class XMLReader {
 			if (tempNode.getNodeType() == Node.ELEMENT_NODE) 
 			{
 				String nodeName=tempNode.getNodeName();
-				// get node name and value
-				//sb.append("\nNode Name =" + tempNode.getNodeName() + " [OPEN]");
-				//System.out.println("\nNode Name =" + tempNode.getNodeName() + " [OPEN]");
-				//System.out.println("Node Value =" + tempNode.getTextContent());
-				//sb.append("Node Value =" + tempNode.getTextContent());
 				if(nodeName=="rootcause")
 				{
 					result=getNodesData(tempNode);
@@ -307,54 +290,9 @@ class XMLReader {
 
 					// loop again if has child nodes
 					result=printNote(tempNode.getChildNodes());
-					
-//						if(count==3)
-//						{
-//							break;
-//						}
-//						if(count != nodeList.getLength())
-//						{
-//						sb.append("</soapenv:Body>\r\n" + 
-//								"</soapenv:Envelope>");
-//						}
-						//System.out.println(sb.toString());
-						System.out.println("\n");
-						//ExecutorService pool = Executors.newFixedThreadPool(count);
-						//UploadFileAPI(sb.toString());
-						//pool.submit(UploadFileAPI(sb.toString())).get();
-						//callSoapWebService(sb.toString());
-						//sb=null;
-//						File fileParsed;
-//
-//						if (OSName.indexOf("win") >= 0) {
-//							fileParsed= new File(configPropeties.getParsedXMLPathWindows());
-//						} 
-//						else
-//						{
-//							fileParsed = new File(configPropeties.getParsedXMLPathLinux());
-//						}
-//						if (!fileParsed.exists())
-//						{
-//							fileParsed.createNewFile();
-//						}
-//						try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileParsed))) {
-//							DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-//							Date date = new Date();
-//							writer.write("\n New request on" +(dateFormat.format(date))+ "\n");
-//							writer.write(sb.toString());
-//						}
-//					catch (Exception e) 
-//					{
-//						appendToFile(e);
-//					}
-						//System.out.println(sb.toString());
 					}
-					//System.out.println(result);
-					//sb.append(result);
 				}
-				//sb.append("Node Name =" + tempNode.getNodeName() + " [CLOSE]");
-				//FileWriter fstream = new FileWriter(fileParsed.getPath(), true);
-				//System.out.println("Node Name =" + tempNode.getNodeName() + " [CLOSE]");
+
 
 		}
 		return result;
@@ -364,16 +302,6 @@ class XMLReader {
 	{
 		boolean sendRequest=false;
 		StringBuilder sb = new StringBuilder();
-//		sb.append("<request-data>\r\n" + 
-//				"  <soap-rpc-request>\r\n" + 
-//				"    <soap-url>"+configPropeties.getWebServiceInitialLink()+"</soap-url>\r\n" + 
-//				"    <username>"+configPropeties.getWebServiceUserName()+"</username>\r\n" + 
-//				"    <password>"+configPropeties.getWebServicePassword()+"</password>\r\n" + 
-//				"    <soap-action>"+configPropeties.getfileUploadUrl()+"</soap-action>\r\n" + 
-//				"    <soap-version>1.1</soap-version>\r\n" + 
-//				"    <chunked-encoding>true</chunked-encoding>\r\n" + 
-//				"    <soap-header-content />\r\n" + 
-//				"    <soap-body-content>");
 		sb.append("<?xml version=\"1.0\" standalone=\"no\"?>\r\n");
 		sb.append("<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns=\"http://schemas.hp.com/SM/7\" xmlns:com=\"http://schemas.hp.com/SM/7/Common\" xmlns:xm=\"http://www.w3.org/2005/05/xmlmime\">\r\n" + 
 				"<soapenv:Header/>\r\n" + 
@@ -502,29 +430,6 @@ class XMLReader {
 
 			connection.setRequestProperty ("Authorization", basicAuth);
 			connection.setRequestMethod("GET");
-			//connection.setRequestProperty("Content-Type", 
-			// "application/xml");
-
-			//connection.setRequestProperty("Content-Length", 
-			//   Integer.toString(urlParameters.getBytes().length));
-			//connection.setRequestProperty("Content-Language", "en-US");  
-
-			//connection.setUseCaches(false);
-			//		    connection.setDoOutput(true);
-
-			//Send request
-			//		    DataOutputStream wr = new DataOutputStream (
-			//		        connection.getOutputStream());
-			//		    wr.writeBytes(urlParameters);
-			//		    wr.close();
-			//		    Reader reader = new InputStreamReader(connection.getInputStream());
-			//	        while (true) {
-			//	            int ch = reader.read();
-			//	            if (ch==-1) {
-			//	                break;
-			//	            }
-			//	            System.out.println((char)ch);
-			//	        }
 			//Get Response  
 			InputStream is = connection.getInputStream();
 			BufferedReader rd = new BufferedReader(new InputStreamReader(is));
@@ -568,147 +473,7 @@ class XMLReader {
 		}
 	}
 	
-	//Upload XML to API specified in configurations file.
-//	public static synchronized String UploadFileAPI(String strXML) throws UnsupportedOperationException, SOAPException
-//	{
-//		String result=null;
-//		//File inFile =null;
-//		/*
-//		 * if (OSName.indexOf("win") >= 0) { inFile= new
-//		 * File(configPropeties.getParsedXMLPathWindows()); } else { inFile=new
-//		 * File(configPropeties.getParsedXMLPathLinux()); } FileInputStream fis = null;
-//		 */
-//		try {
-//			
-//		        //return parseKlanten(response.getSOAPBody());
-//			//fis = new FileInputStream(inFile);
-//			//DefaultHttpClient httpclient = new DefaultHttpClient(new BasicHttpParams());
-//			//httpclient.
-//			//HttpGet httpGet = new HttpGet(configPropeties.getWebServiceInitialLink());
-//			// server back-end URL
-//			String UNPass=configPropeties.getWebServiceUserName()+":"+configPropeties.getWebServicePassword();
-//			//System.out.println(UNPass);
-//			String encoding = DatatypeConverter.printBase64Binary(UNPass.getBytes("UTF-8"));
-//			//httpGet.setHeader("Authorization", "Basic " + encoding);
-//			//HttpResponse responseInit = httpclient.execute(httpGet);
-//			//int statusCode =responseInit.getStatusLine().getStatusCode();
-//			//HttpEntity responseEntity =responseInit.getEntity(); 
-//			//String responseString =EntityUtils.toString(responseEntity, "UTF-8");
-//			//System.out.println(statusCode +" \n"+responseEntity+" \n"+ responseString);
-//			//int statusCodeInit = responseInit.getStatusLine().getStatusCode();
-//			//HttpEntity responseEntityInit = responseInit.getEntity();
-//			//String responseStringInit = EntityUtils.toString(responseEntityInit, "UTF-8");
-//			//result= statusCodeInit + "\n " + responseStringInit;
-//			//
-//			//To DO From Tomorrow. TOday 02-oct-2019.
-//			
-//			  SOAPConnectionFactory soapConnectionFactory = SOAPConnectionFactory.newInstance(); 
-//			  SOAPConnection soapConnection = soapConnectionFactory.createConnection();
-//			  String url = configPropeties.getfileUploadUrl(); //SOAPMessage message = ; SOAPMessage
-//			  MessageFactory mf = MessageFactory.newInstance();
-//			  MimeHeaders hd = new MimeHeaders();//.getMimeHeaders();
-//			  hd.addHeader("Authorization", "Basic " + encoding);
-//			  SOAPMessage msg = mf.createMessage(hd, new ByteArrayInputStream(strXML.getBytes()));
-//			  SOAPMessage responses = soapConnection.call(msg, url);
-//			  ByteArrayOutputStream out = new ByteArrayOutputStream();
-//			  msg.writeTo(out);
-//			  String strMsg = new String(out.toByteArray());
-//			  System.out.println(strMsg);
-//			  File fileParsed;
-//				if (OSName.indexOf("win") >= 0) {
-//					fileParsed= new File(configPropeties.getParsedXMLPathWindows());
-//				} 
-//				else
-//				{
-//					fileParsed = new File(configPropeties.getParsedXMLPathLinux());
-//				}
-//				try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileParsed))) {
-//					DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-//					Date date = new Date();
-//					writer.write("\n New request on" +(dateFormat.format(date))+ "\n");
-//					writer.write(strMsg);
-//				}
-//			catch (Exception e) 
-//			{
-//				appendToFile(e);
-//			}
-//			 
-//			///
-////			SOAPConnectionFactory factory = SOAPConnectionFactory.newInstance();
-////
-////			SOAPConnection soapConnection =factory.createConnection();
-////
-////			SOAPMessage message = MessageFactory.newInstance().createMessage(null,yourInputStream);
-////
-////			message.getMimeHeaders().addHeader("header name", "header value");
-////
-////			soapConnection.call(message, "server url");
-//			//
-//			/*
-//			 * DefaultHttpClient httpclientPost = new DefaultHttpClient(new
-//			 * BasicHttpParams()); HttpPost httppostTicket = new
-//			 * HttpPost(configPropeties.getfileUploadUrl());
-//			 * httppostTicket.setHeader("Authorization", "Basic " + encoding);
-//			 * MultipartEntity entity = new MultipartEntity(); //String encoding =
-//			 * Base64Encoder.encode("" + ":" + ""); //String encoding =
-//			 * Base64.getEncoder().encodeToString(("test1:test1").getBytes(‌"UTF‌​-8"​)); //
-//			 * set the file input stream and file name as arguments //entity.addPart("file",
-//			 * new InputStreamBody(fis, inFile.getName())); entity.addPart("", new
-//			 * StringBody(strXML)); httppostTicket.setEntity(entity); // execute the request
-//			 * HttpResponse response = httpclientPost.execute(httppostTicket);
-//			 * System.out.println(response); int statusCode =
-//			 * response.getStatusLine().getStatusCode(); HttpEntity responseEntity =
-//			 * response.getEntity(); String responseString =
-//			 * EntityUtils.toString(responseEntity, "UTF-8"); result= statusCode + "\n " +
-//			 * responseString;
-//			 */
-//
-//		} catch (ClientProtocolException e) {
-//			//System.err.println("Unable to make connection");
-//			//e.printStackTrace();
-//			appendToFile(e);
-//		} catch (IOException e)
-//		{
-//			//System.err.println("Unable to read file");
-//			//e.printStackTrace();
-//			appendToFile(e);
-//		} finally {
-//			/*
-//			 * try { if (fis != null) fis.close(); } catch (IOException e) {
-//			 * appendToFile(e); }
-//			 */
-//		}
-//		return result;
-//	}
-	//New
-//	private static void createSoapEnvelope(SOAPMessage soapMessage) throws SOAPException {
-//        SOAPPart soapPart = soapMessage.getSOAPPart();
-//
-//        String myNamespace = "myNamespace";
-//        String myNamespaceURI = "http://www.webserviceX.NET";
-//
-//        // SOAP Envelope
-//        SOAPEnvelope envelope = soapPart.getEnvelope();
-//        envelope.addNamespaceDeclaration(myNamespace, myNamespaceURI);
-//
-//            /*
-//            Constructed SOAP Request Message:
-//            <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:myNamespace="http://www.webserviceX.NET">
-//                <SOAP-ENV:Header/>
-//                <SOAP-ENV:Body>
-//                    <myNamespace:GetInfoByCity>
-//                        <myNamespace:USCity>New York</myNamespace:USCity>
-//                    </myNamespace:GetInfoByCity>
-//                </SOAP-ENV:Body>
-//            </SOAP-ENV:Envelope>
-//            */
-//
-//        // SOAP Body
-//        SOAPBody soapBody = envelope.getBody();
-//        SOAPElement soapBodyElem = soapBody.addChildElement("GetInfoByCity", myNamespace);
-//        SOAPElement soapBodyElem1 = soapBodyElem.addChildElement("USCity", myNamespace);
-//        soapBodyElem1.addTextNode("New York");
-//    }
+	
 
     private static synchronized void callSoapWebService(String strXML) {
     	//String soapEndpointUrl, String soapAction
@@ -758,15 +523,5 @@ class XMLReader {
         System.out.println("\n");
         return msg;
     }
-public class UploadAPIMethod implements Callable<String>
-{
-
-	@Override
-	public String call() throws Exception {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
-}
 }
 
