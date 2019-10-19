@@ -473,7 +473,7 @@ class XMLReader {
 		}
 	}
 	
-	
+	//Simple
 
     private static synchronized void callSoapWebService(String strXML) {
     	//String soapEndpointUrl, String soapAction
