@@ -79,15 +79,17 @@ import com.google.gson.Gson;
 import java.io.InputStream;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
-class XMLReader {
+class XMLReader 
+{
 
 	private static String OSName = null;
 	static Configurations configPropeties = new Configurations();
 	//Main Method 
 	//Calling getconfigPropetiess method
 	//Calling startPollingTimer
-	public static void main(String[] args) throws IOException {
-		//System.setProperty("java.net.useSystemProxies", "true");
+	public static void main(String[] args) throws IOException 
+	{
+		System.setProperty("java.net.useSystemProxies", "true");
 		OSName = System.getProperty("os.name").toLowerCase();
 		
 		configPropeties= getconfigPropetiess();
@@ -101,11 +103,15 @@ class XMLReader {
 	public static Timer t;
 	// Synchronized static timer repeating method.
 	// Repeating call of UploadFileAPI method after specified time in configuration property callRepeateTime
-	public static synchronized void startPollingTimer(String serverCompleteUrl, long timePeriod) {
-		if (t == null && configPropeties.getcontinueScheduler() == true) {
-			TimerTask task = new TimerTask() {
+	public static synchronized void startPollingTimer(String serverCompleteUrl, long timePeriod) 
+	{
+		if (t == null && configPropeties.getcontinueScheduler() == true) 
+		{
+			TimerTask task = new TimerTask() 
+			{
 				@Override
-				public void run() {
+				public void run() 
+				{
 					try 
 					{
 					executePost(serverCompleteUrl,"");
@@ -149,15 +155,21 @@ class XMLReader {
 	{
 		stopPollingTimer();
 	}
-	public static void appendToFile(Exception e) {
+	//Exception write to file method.
+	public static void appendToFile(Exception e) 
+	{
 		try {
 			File file;
-			if (OSName.indexOf("win") >= 0) {
+			if (OSName.indexOf("win") >= 0)
+			{
 				file= new File(configPropeties.getWinndowsExceptionsPath());
-			} else {
+			} 
+			else 
+			{
 				file = new File(configPropeties.getLinuxExceptionPath());
 			}
-			if (!file.exists()) {
+			if (!file.exists())
+			{
 				file.createNewFile();
 			}
 			FileWriter fstream = new FileWriter(file.getPath(), true);
@@ -171,12 +183,14 @@ class XMLReader {
 			pWriter.println();
 			e.printStackTrace(pWriter);
 		}
-		catch (Exception ie) {
+		catch (Exception ie) 
+		{
 			throw new RuntimeException("Could not write Exception to file", ie);
 		}
 	}
 	// Reads and returns configurations properties.
-	public static Configurations getconfigPropetiess() throws IOException {
+	public static Configurations getconfigPropetiess() throws IOException 
+	{
 		Configurations config =new Configurations();
 		InputStream input = null;
 
@@ -200,13 +214,17 @@ class XMLReader {
 			//prop.load(input);
 
 		} 
-		catch (IOException ex) {
+		catch (IOException ex)
+		{
 			appendToFile(ex);
 			ex.printStackTrace();
 		} 
-		finally {
-			if (input != null){
-				try {
+		finally 
+		{
+			if (input != null)
+			{
+				try 
+				{
 					input.close();
 				} catch (IOException e)
 				{
@@ -221,13 +239,16 @@ class XMLReader {
 	public static void ParseXML()
 	{
 		final Object lock = new Object();
-		try {
+		try 
+		{
 			File file=null;
 			synchronized(lock)
 			{
 
-				try {
-					if (OSName.indexOf("win") >= 0) {
+				try 
+				{
+					if (OSName.indexOf("win") >= 0)
+					{
 						file= new File(configPropeties.getlocalXMLPathWindows());
 					} else {
 						file = new File(configPropeties.getlocalXMLPathLinux());
@@ -251,7 +272,8 @@ class XMLReader {
 			}
 			File fileParsed;
 
-			if (OSName.indexOf("win") >= 0) {
+			if (OSName.indexOf("win") >= 0)
+			{
 				fileParsed= new File(configPropeties.getParsedXMLPathWindows());
 			} 
 			else
@@ -262,7 +284,8 @@ class XMLReader {
 			{
 				fileParsed.createNewFile();
 			}
-			try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileParsed))) {
+			try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileParsed))) 
+			{
 				writer.write(sb.toString());
 			}
 		} catch (Exception e) 
@@ -274,7 +297,8 @@ class XMLReader {
 //Used to print/write xml data.
 	private static  String printNote(NodeList nodeList) throws IOException, UnsupportedOperationException, SOAPException {
 		String result = "";
-		for (int count = 0; count < nodeList.getLength(); count++) {
+		for (int count = 0; count < nodeList.getLength(); count++)
+		{
 
 			Node tempNode = nodeList.item(count);
 			// make sure it's element node.
@@ -290,14 +314,13 @@ class XMLReader {
 
 					// loop again if has child nodes
 					result=printNote(tempNode.getChildNodes());
-					}
 				}
-
+				}
 
 		}
 		return result;
 	}
-	
+	//To format XML Nodes data according to required SOAP Format.
 	public static String getNodesData(Node tempNode)//NamedNodeMap nnm)
 	{
 		boolean sendRequest=false;
@@ -323,7 +346,8 @@ class XMLReader {
 		NamedNodeMap nodeMap = tempNode.getAttributes();
 		
 
-		for (int i = 0; i < nodeMap.getLength(); i++) {
+		for (int i = 0; i < nodeMap.getLength(); i++) 
+		{
 			
 			Node node = nodeMap.item(i);
 			if(node.getNodeName()=="severity")
@@ -389,7 +413,8 @@ class XMLReader {
 		if (OSName.indexOf("win") >= 0) 
 		{
 			path=configPropeties.getlocalXMLPathWindows();
-		} else
+		} 
+		else
 		{
 			path=configPropeties.getlocalXMLPathLinux();
 		}
@@ -397,13 +422,17 @@ class XMLReader {
 		final BufferedWriter writer;
 		try {
 			// Create a trust manager that does not validate certificate chains
-			TrustManager[] trustAllCerts = new TrustManager[] {new X509TrustManager() {
-				public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+			TrustManager[] trustAllCerts = new TrustManager[] {new X509TrustManager()
+			{
+				public java.security.cert.X509Certificate[] getAcceptedIssuers() 
+				{
 					return null;
 				}
-				public void checkClientTrusted(X509Certificate[] certs, String authType) {
+				public void checkClientTrusted(X509Certificate[] certs, String authType)
+				{
 				}
-				public void checkServerTrusted(X509Certificate[] certs, String authType) {
+				public void checkServerTrusted(X509Certificate[] certs, String authType)
+				{
 				}
 			}
 			};
@@ -415,7 +444,8 @@ class XMLReader {
 			// Create all-trusting host name verifier
 			HostnameVerifier allHostsValid = new HostnameVerifier()
 			{
-				public boolean verify(String hostname, SSLSession session) {
+				public boolean verify(String hostname, SSLSession session) 
+				{
 					return true;
 				}
 			};
@@ -442,7 +472,8 @@ class XMLReader {
 				File file = new File(path);
 				FileOutputStream fop =null;
 				// If file doesn't exists, then create it
-				if (!file.exists()) {
+				if (!file.exists())
+				{
 					file.createNewFile();
 				}
 				synchronized(lock)
@@ -466,18 +497,22 @@ class XMLReader {
 			appendToFile(e);
 			//e.printStackTrace();
 			return null;
-		} finally {
-			if (connection != null) {
+		} 
+		finally 
+		{
+			if (connection != null) 
+			{
 				connection.disconnect();
 			}
 		}
 	}
 	
 	//Simple
-
+	// TO Call SOAP method and Pass required SOAP Data.
     private static synchronized void callSoapWebService(String strXML) {
     	//String soapEndpointUrl, String soapAction
-        try {
+        try
+        {
             // Create SOAP Connection
             SOAPConnectionFactory soapConnectionFactory = SOAPConnectionFactory.newInstance();
             SOAPConnection soapConnection = soapConnectionFactory.createConnection();
@@ -492,12 +527,14 @@ class XMLReader {
             System.out.println();
             soapConnection.close();
             TimeUnit.MILLISECONDS.sleep(50);
-        } catch (Exception e) {
+         }
+        catch (Exception e)
+        {
             System.err.println("\nError occurred while sending SOAP Request to Server!\nMake sure you have the correct endpoint URL and SOAPAction!\n");
             e.printStackTrace();
         }
     }
-
+    //To create proper SOAP Message including Headers ETC.
     private static SOAPMessage createSOAPRequest(String soapAction, String strXML) throws Exception {
         MessageFactory messageFactory = MessageFactory.newInstance();
         String UNPass=configPropeties.getWebServiceUserName()+":"+configPropeties.getWebServicePassword();
