@@ -71,6 +71,10 @@ public class Configurations {
 		@SerializedName("webServiceInitialLink")
 		@Expose
 		private String webServiceInitialLink;
+		//SOAPActionName
+		@SerializedName("SOAPActionName")
+		@Expose
+		private String SOAPActionName;
 		//WinndowsExceptionsPath
 		public String getWinndowsExceptionsPath() {
 		return winndowsExceptionsPath;
@@ -204,5 +208,13 @@ public class Configurations {
 
 		public void setWebServiceInitialLink(String webServiceInitialLink) {
 		this.webServiceInitialLink = webServiceInitialLink;
+		}
+		//SOAPActionName
+		public String getSOAPActionName() {
+		return SOAPActionName;
+		}
+
+		public void setSOAPActionName(String SOAPActionName) {
+		this.SOAPActionName = SOAPActionName;
 		}
 }
