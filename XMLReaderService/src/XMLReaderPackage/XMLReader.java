@@ -13,6 +13,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Reader;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.HttpURLConnection;
@@ -24,14 +25,23 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.cert.X509Certificate;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
+import java.util.List;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -59,6 +69,7 @@ import javax.xml.soap.SOAPMessage;
 import javax.xml.soap.SOAPPart;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.output.StringBuilderWriter;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -72,6 +83,7 @@ import org.apache.http.params.BasicHttpParams;
 import org.apache.http.util.EntityUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import com.google.gson.Gson;
@@ -79,15 +91,17 @@ import com.google.gson.Gson;
 import java.io.InputStream;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
-class XMLReader {
+class XMLReader 
+{
 
 	private static String OSName = null;
 	static Configurations configPropeties = new Configurations();
 	//Main Method 
 	//Calling getconfigPropetiess method
 	//Calling startPollingTimer
-	public static void main(String[] args) throws IOException {
-		//System.setProperty("java.net.useSystemProxies", "true");
+	public static void main(String[] args) throws IOException 
+	{
+		System.setProperty("java.net.useSystemProxies", "true");
 		OSName = System.getProperty("os.name").toLowerCase();
 		
 		configPropeties= getconfigPropetiess();
@@ -101,11 +115,15 @@ class XMLReader {
 	public static Timer t;
 	// Synchronized static timer repeating method.
 	// Repeating call of UploadFileAPI method after specified time in configuration property callRepeateTime
-	public static synchronized void startPollingTimer(String serverCompleteUrl, long timePeriod) {
-		if (t == null && configPropeties.getcontinueScheduler() == true) {
-			TimerTask task = new TimerTask() {
+	public static synchronized void startPollingTimer(String serverCompleteUrl, long timePeriod) 
+	{
+		if (t == null && configPropeties.getcontinueScheduler() == true) 
+		{
+			TimerTask task = new TimerTask() 
+			{
 				@Override
-				public void run() {
+				public void run() 
+				{
 					try 
 					{
 					executePost(serverCompleteUrl,"");
@@ -149,15 +167,21 @@ class XMLReader {
 	{
 		stopPollingTimer();
 	}
-	public static void appendToFile(Exception e) {
+	//Exception write to file method.
+	public static void appendToFile(Exception e) 
+	{
 		try {
 			File file;
-			if (OSName.indexOf("win") >= 0) {
+			if (OSName.indexOf("win") >= 0)
+			{
 				file= new File(configPropeties.getWinndowsExceptionsPath());
-			} else {
+			} 
+			else 
+			{
 				file = new File(configPropeties.getLinuxExceptionPath());
 			}
-			if (!file.exists()) {
+			if (!file.exists())
+			{
 				file.createNewFile();
 			}
 			FileWriter fstream = new FileWriter(file.getPath(), true);
@@ -171,19 +195,18 @@ class XMLReader {
 			pWriter.println();
 			e.printStackTrace(pWriter);
 		}
-		catch (Exception ie) {
+		catch (Exception ie) 
+		{
 			throw new RuntimeException("Could not write Exception to file", ie);
 		}
 	}
 	// Reads and returns configurations properties.
-	public static Configurations getconfigPropetiess() throws IOException {
+	public static Configurations getconfigPropetiess() throws IOException 
+	{
 		Configurations config =new Configurations();
 		InputStream input = null;
 
 		try {
-			//Path currentRelativePath = Paths.get("");
-			//String absolutePath = currentRelativePath.toAbsolutePath().toString();
-			//String UTF_Encoding="UTF-8";
 			if (OSName.indexOf("win") >= 0) 
 			{
 				//UTF_Encoding="UTF-8";
@@ -203,13 +226,17 @@ class XMLReader {
 			//prop.load(input);
 
 		} 
-		catch (IOException ex) {
+		catch (IOException ex)
+		{
 			appendToFile(ex);
 			ex.printStackTrace();
 		} 
-		finally {
-			if (input != null){
-				try {
+		finally 
+		{
+			if (input != null)
+			{
+				try 
+				{
 					input.close();
 				} catch (IOException e)
 				{
@@ -224,15 +251,19 @@ class XMLReader {
 	public static void ParseXML()
 	{
 		final Object lock = new Object();
-		try {
+		try 
+		{
 			File file=null;
 			synchronized(lock)
 			{
 
-				try {
-					if (OSName.indexOf("win") >= 0) {
+				try 
+				{
+					if (OSName.indexOf("win") >= 0)
+					{
 						file= new File(configPropeties.getlocalXMLPathWindows());
-					} else {
+					} else 
+					{
 						file = new File(configPropeties.getlocalXMLPathLinux());
 					}
 				}
@@ -241,29 +272,21 @@ class XMLReader {
 					appendToFile(e);
 				}
 			}
-			//File file = new File("E:\\XMLData\\Sample.xml");
 			DocumentBuilder dBuilder = DocumentBuilderFactory.newInstance()
 					.newDocumentBuilder();
 
 			Document doc = dBuilder.parse(file);
 			StringBuilder sb = new StringBuilder();
-			//sb.append("Root element :" + doc.getDocumentElement().getNodeName());
-			//sb.append("<?xml version=\"1.0\"?>\r\n");
-			//sb.append("<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns=\"http://schemas.hp.com/SM/7\" xmlns:com=\"http://schemas.hp.com/SM/7/Common\" xmlns:xm=\"http://www.w3.org/2005/05/xmlmime\">\r\n" + 
-					//"<soapenv:Header/>\r\n" + 
-					//"<soapenv:Body>\r\n");
-			//System.out.println("Root element :" + doc.getDocumentElement().getNodeName());
 			
 			if (doc.hasChildNodes()) 
 			{
 				String res=	printNote(doc.getChildNodes());
 				sb.append(res);
 			}
-			//sb.append("</soapenv:Body>\r\n" + 
-					//"</soapenv:Envelope>");
 			File fileParsed;
 
-			if (OSName.indexOf("win") >= 0) {
+			if (OSName.indexOf("win") >= 0)
+			{
 				fileParsed= new File(configPropeties.getParsedXMLPathWindows());
 			} 
 			else
@@ -274,7 +297,8 @@ class XMLReader {
 			{
 				fileParsed.createNewFile();
 			}
-			try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileParsed))) {
+			try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileParsed))) 
+			{
 				writer.write(sb.toString());
 			}
 		} catch (Exception e) 
@@ -286,18 +310,14 @@ class XMLReader {
 //Used to print/write xml data.
 	private static  String printNote(NodeList nodeList) throws IOException, UnsupportedOperationException, SOAPException {
 		String result = "";
-		for (int count = 0; count < nodeList.getLength(); count++) {
+		for (int count = 0; count < nodeList.getLength(); count++)
+		{
 
 			Node tempNode = nodeList.item(count);
 			// make sure it's element node.
 			if (tempNode.getNodeType() == Node.ELEMENT_NODE) 
 			{
 				String nodeName=tempNode.getNodeName();
-				// get node name and value
-				//sb.append("\nNode Name =" + tempNode.getNodeName() + " [OPEN]");
-				//System.out.println("\nNode Name =" + tempNode.getNodeName() + " [OPEN]");
-				//System.out.println("Node Value =" + tempNode.getTextContent());
-				//sb.append("Node Value =" + tempNode.getTextContent());
 				if(nodeName=="rootcause")
 				{
 					result=getNodesData(tempNode);
@@ -307,87 +327,29 @@ class XMLReader {
 
 					// loop again if has child nodes
 					result=printNote(tempNode.getChildNodes());
-					
-//						if(count==3)
-//						{
-//							break;
-//						}
-//						if(count != nodeList.getLength())
-//						{
-//						sb.append("</soapenv:Body>\r\n" + 
-//								"</soapenv:Envelope>");
-//						}
-						//System.out.println(sb.toString());
-						System.out.println("\n");
-						//ExecutorService pool = Executors.newFixedThreadPool(count);
-						//UploadFileAPI(sb.toString());
-						//pool.submit(UploadFileAPI(sb.toString())).get();
-						//callSoapWebService(sb.toString());
-						//sb=null;
-//						File fileParsed;
-//
-//						if (OSName.indexOf("win") >= 0) {
-//							fileParsed= new File(configPropeties.getParsedXMLPathWindows());
-//						} 
-//						else
-//						{
-//							fileParsed = new File(configPropeties.getParsedXMLPathLinux());
-//						}
-//						if (!fileParsed.exists())
-//						{
-//							fileParsed.createNewFile();
-//						}
-//						try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileParsed))) {
-//							DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-//							Date date = new Date();
-//							writer.write("\n New request on" +(dateFormat.format(date))+ "\n");
-//							writer.write(sb.toString());
-//						}
-//					catch (Exception e) 
-//					{
-//						appendToFile(e);
-//					}
-						//System.out.println(sb.toString());
-					}
-					//System.out.println(result);
-					//sb.append(result);
 				}
-				//sb.append("Node Name =" + tempNode.getNodeName() + " [CLOSE]");
-				//FileWriter fstream = new FileWriter(fileParsed.getPath(), true);
-				//System.out.println("Node Name =" + tempNode.getNodeName() + " [CLOSE]");
+				}
 
 		}
 		return result;
 	}
-	
+	//To format XML Nodes data according to required SOAP Format.
 	public static String getNodesData(Node tempNode)//NamedNodeMap nnm)
 	{
 		boolean sendRequest=false;
 		StringBuilder sb = new StringBuilder();
-//		sb.append("<request-data>\r\n" + 
-//				"  <soap-rpc-request>\r\n" + 
-//				"    <soap-url>"+configPropeties.getWebServiceInitialLink()+"</soap-url>\r\n" + 
-//				"    <username>"+configPropeties.getWebServiceUserName()+"</username>\r\n" + 
-//				"    <password>"+configPropeties.getWebServicePassword()+"</password>\r\n" + 
-//				"    <soap-action>"+configPropeties.getfileUploadUrl()+"</soap-action>\r\n" + 
-//				"    <soap-version>1.1</soap-version>\r\n" + 
-//				"    <chunked-encoding>true</chunked-encoding>\r\n" + 
-//				"    <soap-header-content />\r\n" + 
-//				"    <soap-body-content>");
-		sb.append("<?xml version=\"1.0\" standalone=\"no\"?>\r\n");
-		sb.append("<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns=\"http://schemas.hp.com/SM/7\" xmlns:com=\"http://schemas.hp.com/SM/7/Common\" xmlns:xm=\"http://www.w3.org/2005/05/xmlmime\">\r\n" + 
-				"<soapenv:Header/>\r\n" + 
-				"<soapenv:Body>\r\n");
-		sb.append("<ns:CreateIncidentRequest>\r\n" + 
-				"         <ns:model>\r\n" + 
-				"            <ns:keys>\r\n" + 
-				"               <ns:IncidentID type=\"String\"></ns:IncidentID>\r\n"+ 
-				"            </ns:keys>\r\n" + 
-				"            <ns:instance>\r\n"+
-				"<ns:Title type=\"String\">test from SOAP UI</ns:Title>\r\n"+
-				"<ns:Description type=\"Array\">\r\n");
+		String title="";
+		String SOAPRes="";
+		NamedNodeMap tempNamedNodeMap=tempNode.getAttributes();
+		title=tempNamedNodeMap.getNamedItem("info").toString();
+		if(title !="")
+		{
+		title = title.replace("info=", "");
+		}
+		
 		int severityInt=0;
-		long alarmId=0;
+		long alarmId=0, commitId=0, alarmCount=0;
+		String severity="";
 	if (tempNode.hasAttributes())
 	{
 
@@ -395,25 +357,39 @@ class XMLReader {
 		NamedNodeMap nodeMap = tempNode.getAttributes();
 		
 
-		for (int i = 0; i < nodeMap.getLength(); i++) {
+		for (int i = 0; i < nodeMap.getLength(); i++) 
+		{
 			
 			Node node = nodeMap.item(i);
 			if(node.getNodeName()=="severity")
 			{
-				String severity="";
 				severity=node.getNodeValue();
-				if(severity.toLowerCase()=="critical")
-					severityInt=1;
-				else if(severity.toLowerCase()=="major")
-					severityInt=2;
-				else if(severity.toLowerCase()=="marginal")
-					severityInt=3;
-				else
-					severityInt=4;
+				switch (node.getNodeName()) 
+				{
+				  case "critical":
+					  severityInt=1;
+				    break;
+				  case "major":
+				    severityInt=2;
+				    break;
+				  case "marginal":
+					    severityInt=3;
+					    break;
+				  default:
+					  severityInt=4;
+				}
 			}
 			else if(node.getNodeName()=="alarmid")
 			{
 				alarmId=Long.parseLong(node.getNodeValue());
+			}
+			else if(node.getNodeName()=="commitid")
+			{
+				commitId=Long.parseLong(node.getNodeValue());
+			}
+			else if(node.getNodeName()=="alarmcount")
+			{
+				alarmCount=Long.parseLong(node.getNodeValue());
 			}
 			else
 			{
@@ -424,34 +400,138 @@ class XMLReader {
 		}
 		sendRequest=true;
 	}
-	sb.append("</ns:Description>\r\n");
-	sb.append(" <ns:Category type=\"String\">Incident</ns:Category>\r\n");
-	sb.append("<ns:Area type=\"String\">Stablenet</ns:Area>\r\n");
-	sb.append("<ns:Subarea type=\"String\">Alarm</ns:Subarea>\r\n");
-	sb.append("<ns:Urgency type=\"String\">"+severityInt+"</ns:Urgency>\r\n ");
-	sb.append("<ns:AssignmentGroup type=\"String\" >ROP HELPDESK</ns:AssignmentGroup>\r\n");
-	sb.append("<ns:Service type=\"String\">CI1001366</ns:Service>\r\n");
-	//sb.append("<ns:Service type=\"String\">CI1001366</ns:Service>\r\n");
-	sb.append("<ns:Impact type=\"String\">1</ns:Impact>\r\n");
-	sb.append("<ns:ExternalID type=\"String\">"+alarmId+"</ns:ExternalID>\r\n");
-	sb.append("</ns:instance>\r\n" +  
-			"</ns:model>\r\n");
-	sb.append("</ns:CreateIncidentRequest>\r\n");
-	//if(result.indexOf("</soapenv:Body>")==-1)
-		sb.append("</soapenv:Body>\r\n" + 
-				"</soapenv:Envelope>");
-//		sb.append("</soap-body-content>\r\n" + 
-//				" </soap-rpc-request>\r\n" + 
-//				"</request-data>");
-		if(sendRequest)
+	
+		String getQuery="Select * from alarm_ticket where action_executed !='Closed'"
+				+" AND alarm_id=" + alarmId + " "; //+ alarmCount + " > alarm_count";
+		ResultSet res =null;
+		
+		try
 		{
-			callSoapWebService(sb.toString());
-			//System.out.println(sb.toString());
+			String query="";
+			String actionName="";
+			int count= 0;
+			String severityDB="";
+			res =getAlarmsStateData(getQuery);
+			if(res !=null && res.next())
+			{
+				count= res.getInt("alarm_count");
+				severityDB=res.getString("alarm_severity");
+				//if(count<alarmCount || severityDB !=severity)
+				if(count==alarmCount && severityDB ==severity)
+				{
+					sendRequest=false;
+					//do nothing so for.
+					return null;
+				}
+				else
+				{
+					//should be update call in future.
+					actionName=configPropeties.getSOAPActionNameUpdate();
+					query="update alarm_ticket set alarm_count=" + alarmCount + ""
+					+", alarm_severity='" + severity + "', action_executed='updated'"
+					+", action_executed_datetime= '" + getSystemCurentTime() + "' where"
+					+" alarm_id =" + alarmId + "";
+					try 
+					{
+						SaveAlarmState(query);
+					} 
+					catch (ClassNotFoundException e) 
+					{
+						appendToFile(e);
+					} 
+				}
+			}
+			else
+			{
+				SOAPRes= getCreateTicketSoap(title,sb.toString(),severityInt, alarmId);
+				actionName=configPropeties.getSOAPActionNameCreate();
+				String IncidentId="";
+				if(sendRequest)
+				{
+					IncidentId=callSoapWebService(SOAPRes, actionName);
+					//System.out.println(sb.toString());
+				}
+				//System.out.println(formatter.format(date));
+				query="INSERT INTO alarm_ticket (alarm_id, alarm_severity, alarm_count,"
+				+" action_executed, action_executed_datetime, alarm_commitId, incident_id) VALUES "
+				+"(" + alarmId + ", '" + severity + "', " + alarmCount + ", " + "'Created'" + " ,"
+				+" '" + getSystemCurentTime() + "', " + commitId + ", '"+IncidentId+"')";
+				try 
+				{
+					SaveAlarmState(query);
+				} 
+				catch (ClassNotFoundException e) 
+				{
+					appendToFile(e);
+				} 
+				catch (SQLException e) 
+				{
+					appendToFile(e);
+				}
+				
+			}
+			
+			//callSoapWebService(sb.toString());
+		} 
+		catch (Exception e)
+		{
+			appendToFile(e);
 		}
-		//callSoapWebService(sb.toString());
 		String result="";
 		return result;
 	}
+	private static String getCreateTicketSoap(String title, String descriptionString, int severityInt, long alarmId)
+	{
+		StringBuilder sb=new StringBuilder();
+		sb.append("<?xml version=\"1.0\" standalone=\"no\"?>\r\n");
+		sb.append("<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns=\"http://schemas.hp.com/SM/7\" xmlns:com=\"http://schemas.hp.com/SM/7/Common\" xmlns:xm=\"http://www.w3.org/2005/05/xmlmime\">\r\n" + 
+				"<soapenv:Header/>\r\n" + 
+				"<soapenv:Body>\r\n");
+		sb.append("<ns:CreateIncidentRequest>\r\n" + 
+				"         <ns:model>\r\n" + 
+				"            <ns:keys>\r\n" + 
+				"               <ns:IncidentID type=\"String\"></ns:IncidentID>\r\n"+ 
+				"            </ns:keys>\r\n" + 
+				"            <ns:instance>\r\n"+
+				"<ns:Title type=\"String\">" + title + "</ns:Title>\r\n"+
+				"<ns:Description type=\"Array\">\r\n");
+		//
+		sb.append(descriptionString);
+		sb.append("</ns:Description>\r\n");
+		sb.append(" <ns:Category type=\"String\">Incident</ns:Category>\r\n");
+		sb.append("<ns:Area type=\"String\">Stablenet</ns:Area>\r\n");
+		sb.append("<ns:Subarea type=\"String\">Alarm</ns:Subarea>\r\n");
+		sb.append("<ns:Urgency type=\"String\">"+severityInt+"</ns:Urgency>\r\n ");
+		sb.append("<ns:AssignmentGroup type=\"String\" >ROP HELPDESK</ns:AssignmentGroup>\r\n");
+		sb.append("<ns:Service type=\"String\">CI1001366</ns:Service>\r\n");
+		//sb.append("<ns:Service type=\"String\">CI1001366</ns:Service>\r\n");
+		sb.append("<ns:Impact type=\"String\">1</ns:Impact>\r\n");
+		sb.append("<ns:ExternalID type=\"String\">"+alarmId+"</ns:ExternalID>\r\n");
+		sb.append("</ns:instance>\r\n" +  
+				"</ns:model>\r\n");
+		sb.append("</ns:CreateIncidentRequest>\r\n");
+		//if(result.indexOf("</soapenv:Body>")==-1)
+			sb.append("</soapenv:Body>\r\n" + 
+					"</soapenv:Envelope>");
+//			sb.append("</soap-body-content>\r\n" + 
+//					" </soap-rpc-request>\r\n" + 
+//					"</request-data>");
+		return sb.toString();
+	}
+	private static String getUpdateTicketSoap()
+	{
+		StringBuilder sb=new StringBuilder();
+		return sb.toString();
+	}
+	
+	 private static String getSystemCurentTime()
+	 {
+		 	SimpleDateFormat formatter= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			Date date = new Date(System.currentTimeMillis());
+			String currentTime = formatter.format(date);
+			return currentTime;
+		 
+	 }
 	
 	// Calling stableNet's server API for provided url and parameters for that URL.
 	public static String executePost(String targetURL, String urlParameters) {
@@ -461,7 +541,8 @@ class XMLReader {
 		if (OSName.indexOf("win") >= 0) 
 		{
 			path=configPropeties.getlocalXMLPathWindows();
-		} else
+		} 
+		else
 		{
 			path=configPropeties.getlocalXMLPathLinux();
 		}
@@ -469,13 +550,17 @@ class XMLReader {
 		final BufferedWriter writer;
 		try {
 			// Create a trust manager that does not validate certificate chains
-			TrustManager[] trustAllCerts = new TrustManager[] {new X509TrustManager() {
-				public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+			TrustManager[] trustAllCerts = new TrustManager[] {new X509TrustManager()
+			{
+				public java.security.cert.X509Certificate[] getAcceptedIssuers() 
+				{
 					return null;
 				}
-				public void checkClientTrusted(X509Certificate[] certs, String authType) {
+				public void checkClientTrusted(X509Certificate[] certs, String authType)
+				{
 				}
-				public void checkServerTrusted(X509Certificate[] certs, String authType) {
+				public void checkServerTrusted(X509Certificate[] certs, String authType)
+				{
 				}
 			}
 			};
@@ -487,7 +572,8 @@ class XMLReader {
 			// Create all-trusting host name verifier
 			HostnameVerifier allHostsValid = new HostnameVerifier()
 			{
-				public boolean verify(String hostname, SSLSession session) {
+				public boolean verify(String hostname, SSLSession session) 
+				{
 					return true;
 				}
 			};
@@ -502,29 +588,6 @@ class XMLReader {
 
 			connection.setRequestProperty ("Authorization", basicAuth);
 			connection.setRequestMethod("GET");
-			//connection.setRequestProperty("Content-Type", 
-			// "application/xml");
-
-			//connection.setRequestProperty("Content-Length", 
-			//   Integer.toString(urlParameters.getBytes().length));
-			//connection.setRequestProperty("Content-Language", "en-US");  
-
-			//connection.setUseCaches(false);
-			//		    connection.setDoOutput(true);
-
-			//Send request
-			//		    DataOutputStream wr = new DataOutputStream (
-			//		        connection.getOutputStream());
-			//		    wr.writeBytes(urlParameters);
-			//		    wr.close();
-			//		    Reader reader = new InputStreamReader(connection.getInputStream());
-			//	        while (true) {
-			//	            int ch = reader.read();
-			//	            if (ch==-1) {
-			//	                break;
-			//	            }
-			//	            System.out.println((char)ch);
-			//	        }
 			//Get Response  
 			InputStream is = connection.getInputStream();
 			BufferedReader rd = new BufferedReader(new InputStreamReader(is));
@@ -537,7 +600,8 @@ class XMLReader {
 				File file = new File(path);
 				FileOutputStream fop =null;
 				// If file doesn't exists, then create it
-				if (!file.exists()) {
+				if (!file.exists())
+				{
 					file.createNewFile();
 				}
 				synchronized(lock)
@@ -561,165 +625,79 @@ class XMLReader {
 			appendToFile(e);
 			//e.printStackTrace();
 			return null;
-		} finally {
-			if (connection != null) {
+		} 
+		finally 
+		{
+			if (connection != null) 
+			{
 				connection.disconnect();
 			}
 		}
 	}
 	
-	//Upload XML to API specified in configurations file.
-//	public static synchronized String UploadFileAPI(String strXML) throws UnsupportedOperationException, SOAPException
-//	{
-//		String result=null;
-//		//File inFile =null;
-//		/*
-//		 * if (OSName.indexOf("win") >= 0) { inFile= new
-//		 * File(configPropeties.getParsedXMLPathWindows()); } else { inFile=new
-//		 * File(configPropeties.getParsedXMLPathLinux()); } FileInputStream fis = null;
-//		 */
-//		try {
-//			
-//		        //return parseKlanten(response.getSOAPBody());
-//			//fis = new FileInputStream(inFile);
-//			//DefaultHttpClient httpclient = new DefaultHttpClient(new BasicHttpParams());
-//			//httpclient.
-//			//HttpGet httpGet = new HttpGet(configPropeties.getWebServiceInitialLink());
-//			// server back-end URL
-//			String UNPass=configPropeties.getWebServiceUserName()+":"+configPropeties.getWebServicePassword();
-//			//System.out.println(UNPass);
-//			String encoding = DatatypeConverter.printBase64Binary(UNPass.getBytes("UTF-8"));
-//			//httpGet.setHeader("Authorization", "Basic " + encoding);
-//			//HttpResponse responseInit = httpclient.execute(httpGet);
-//			//int statusCode =responseInit.getStatusLine().getStatusCode();
-//			//HttpEntity responseEntity =responseInit.getEntity(); 
-//			//String responseString =EntityUtils.toString(responseEntity, "UTF-8");
-//			//System.out.println(statusCode +" \n"+responseEntity+" \n"+ responseString);
-//			//int statusCodeInit = responseInit.getStatusLine().getStatusCode();
-//			//HttpEntity responseEntityInit = responseInit.getEntity();
-//			//String responseStringInit = EntityUtils.toString(responseEntityInit, "UTF-8");
-//			//result= statusCodeInit + "\n " + responseStringInit;
-//			//
-//			//To DO From Tomorrow. TOday 02-oct-2019.
-//			
-//			  SOAPConnectionFactory soapConnectionFactory = SOAPConnectionFactory.newInstance(); 
-//			  SOAPConnection soapConnection = soapConnectionFactory.createConnection();
-//			  String url = configPropeties.getfileUploadUrl(); //SOAPMessage message = ; SOAPMessage
-//			  MessageFactory mf = MessageFactory.newInstance();
-//			  MimeHeaders hd = new MimeHeaders();//.getMimeHeaders();
-//			  hd.addHeader("Authorization", "Basic " + encoding);
-//			  SOAPMessage msg = mf.createMessage(hd, new ByteArrayInputStream(strXML.getBytes()));
-//			  SOAPMessage responses = soapConnection.call(msg, url);
-//			  ByteArrayOutputStream out = new ByteArrayOutputStream();
-//			  msg.writeTo(out);
-//			  String strMsg = new String(out.toByteArray());
-//			  System.out.println(strMsg);
-//			  File fileParsed;
-//				if (OSName.indexOf("win") >= 0) {
-//					fileParsed= new File(configPropeties.getParsedXMLPathWindows());
-//				} 
-//				else
-//				{
-//					fileParsed = new File(configPropeties.getParsedXMLPathLinux());
-//				}
-//				try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileParsed))) {
-//					DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-//					Date date = new Date();
-//					writer.write("\n New request on" +(dateFormat.format(date))+ "\n");
-//					writer.write(strMsg);
-//				}
-//			catch (Exception e) 
-//			{
-//				appendToFile(e);
-//			}
-//			 
-//			///
-////			SOAPConnectionFactory factory = SOAPConnectionFactory.newInstance();
-////
-////			SOAPConnection soapConnection =factory.createConnection();
-////
-////			SOAPMessage message = MessageFactory.newInstance().createMessage(null,yourInputStream);
-////
-////			message.getMimeHeaders().addHeader("header name", "header value");
-////
-////			soapConnection.call(message, "server url");
-//			//
-//			/*
-//			 * DefaultHttpClient httpclientPost = new DefaultHttpClient(new
-//			 * BasicHttpParams()); HttpPost httppostTicket = new
-//			 * HttpPost(configPropeties.getfileUploadUrl());
-//			 * httppostTicket.setHeader("Authorization", "Basic " + encoding);
-//			 * MultipartEntity entity = new MultipartEntity(); //String encoding =
-//			 * Base64Encoder.encode("" + ":" + ""); //String encoding =
-//			 * Base64.getEncoder().encodeToString(("test1:test1").getBytes(‌"UTF‌​-8"​)); //
-//			 * set the file input stream and file name as arguments //entity.addPart("file",
-//			 * new InputStreamBody(fis, inFile.getName())); entity.addPart("", new
-//			 * StringBody(strXML)); httppostTicket.setEntity(entity); // execute the request
-//			 * HttpResponse response = httpclientPost.execute(httppostTicket);
-//			 * System.out.println(response); int statusCode =
-//			 * response.getStatusLine().getStatusCode(); HttpEntity responseEntity =
-//			 * response.getEntity(); String responseString =
-//			 * EntityUtils.toString(responseEntity, "UTF-8"); result= statusCode + "\n " +
-//			 * responseString;
-//			 */
-//
-//		} catch (ClientProtocolException e) {
-//			//System.err.println("Unable to make connection");
-//			//e.printStackTrace();
-//			appendToFile(e);
-//		} catch (IOException e)
-//		{
-//			//System.err.println("Unable to read file");
-//			//e.printStackTrace();
-//			appendToFile(e);
-//		} finally {
-//			/*
-//			 * try { if (fis != null) fis.close(); } catch (IOException e) {
-//			 * appendToFile(e); }
-//			 */
-//		}
-//		return result;
-//	}
-	//New
-//	private static void createSoapEnvelope(SOAPMessage soapMessage) throws SOAPException {
-//        SOAPPart soapPart = soapMessage.getSOAPPart();
-//
-//        String myNamespace = "myNamespace";
-//        String myNamespaceURI = "http://www.webserviceX.NET";
-//
-//        // SOAP Envelope
-//        SOAPEnvelope envelope = soapPart.getEnvelope();
-//        envelope.addNamespaceDeclaration(myNamespace, myNamespaceURI);
-//
-//            /*
-//            Constructed SOAP Request Message:
-//            <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:myNamespace="http://www.webserviceX.NET">
-//                <SOAP-ENV:Header/>
-//                <SOAP-ENV:Body>
-//                    <myNamespace:GetInfoByCity>
-//                        <myNamespace:USCity>New York</myNamespace:USCity>
-//                    </myNamespace:GetInfoByCity>
-//                </SOAP-ENV:Body>
-//            </SOAP-ENV:Envelope>
-//            */
-//
-//        // SOAP Body
-//        SOAPBody soapBody = envelope.getBody();
-//        SOAPElement soapBodyElem = soapBody.addChildElement("GetInfoByCity", myNamespace);
-//        SOAPElement soapBodyElem1 = soapBodyElem.addChildElement("USCity", myNamespace);
-//        soapBodyElem1.addTextNode("New York");
-//    }
-
-    private static synchronized void callSoapWebService(String strXML) {
+	//Simple
+	// TO Call SOAP method and Pass required SOAP Data.
+    private static synchronized String callSoapWebService(String strXML, String actionName) {
     	//String soapEndpointUrl, String soapAction
-        try {
+    	String resultedIncidentId="";
+        try
+        {
             // Create SOAP Connection
             SOAPConnectionFactory soapConnectionFactory = SOAPConnectionFactory.newInstance();
             SOAPConnection soapConnection = soapConnectionFactory.createConnection();
             String soapEndpointUrl = configPropeties.getWebServiceInitialLink();
             String soapAction = configPropeties.getfileUploadUrl();//"http://www.webserviceX.NET/GetInfoByCity";
             // Send SOAP Message to SOAP Server
-            SOAPMessage soapResponse = soapConnection.call(createSOAPRequest(soapAction, strXML), soapEndpointUrl);
+           // SOAPMessage soapResponse = soapConnection.call(createSOAPRequest(soapAction, strXML, actionName), soapEndpointUrl);
+            String send="<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\">\r\n" + 
+            		"   <SOAP-ENV:Body>\r\n" + 
+            		"      <CreateIncidentResponse message=\"Success\" returnCode=\"0\" schemaRevisionDate=\"2019-10-01\" schemaRevisionLevel=\"1\" status=\"SUCCESS\" xsi:schemaLocation=\"http://schemas.hp.com/SM/7 http://smsvr1-mct-1a.scnrop.gov.om:13080/SM/7/Incident.xsd\" xmlns=\"http://schemas.hp.com/SM/7\" xmlns:cmn=\"http://schemas.hp.com/SM/7/Common\" xmlns:xmime=\"http://www.w3.org/2005/05/xmlmime\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n" + 
+            		"         <model>\r\n" + 
+            		"            <keys>\r\n" + 
+            		"               <IncidentID type=\"String\">IM575132</IncidentID>\r\n" + 
+            		"            </keys>\r\n" + 
+            		"            <instance recordid=\"IM575132 - Stablenet ALARM : Desription\" uniquequery=\"number=&quot;IM575132&quot;\">\r\n" + 
+            		"               <IncidentID type=\"String\">IM575132</IncidentID>\r\n" + 
+            		"               <Category type=\"String\">Incident</Category>\r\n" + 
+            		"               <OpenTime type=\"DateTime\">2019-12-30T10:52:36+00:00</OpenTime>\r\n" + 
+            		"               <OpenedBy type=\"String\">int-sn</OpenedBy>\r\n" + 
+            		"               <Urgency type=\"String\">4</Urgency>\r\n" + 
+            		"               <UpdatedTime type=\"DateTime\">2019-12-30T10:52:36+00:00</UpdatedTime>\r\n" + 
+            		"               <AssignmentGroup type=\"String\">ROP-ETESALAT-FO</AssignmentGroup>\r\n" + 
+            		"               <Description type=\"Array\">\r\n" + 
+            		"                  <Description type=\"String\">text1</Description>\r\n" + 
+            		"                  <Description type=\"String\">text2</Description>\r\n" + 
+            		"                  <Description type=\"String\">text3</Description>\r\n" + 
+            		"               </Description>\r\n" + 
+            		"               <Title type=\"String\">Stablenet ALARM : Desription</Title>\r\n" + 
+            		"               <UpdatedBy type=\"String\">int-sn</UpdatedBy>\r\n" + 
+            		"               <Status type=\"String\">Categorize</Status>\r\n" + 
+            		"               <Phase type=\"String\">Categorization</Phase>\r\n" + 
+            		"               <Area type=\"String\">performance</Area>\r\n" + 
+            		"               <Subarea type=\"String\">performance degradation</Subarea>\r\n" + 
+            		"               <Impact type=\"String\">1</Impact>\r\n" + 
+            		"               <Service display=\"Default\" type=\"String\">CI1001366</Service>\r\n" + 
+            		"               <ExternalID type=\"String\">IM15</ExternalID>\r\n" + 
+            		"            </instance>\r\n" + 
+            		"         </model>\r\n" + 
+            		"         <messages>\r\n" + 
+            		"            <cmn:message type=\"String\">US/Mountain 12/30/19 03:52:36:  Incident IM575132 has been opened by int-sn</cmn:message>\r\n" + 
+            		"            <cmn:message type=\"String\">Incident \"IM575132\" added.</cmn:message>\r\n" + 
+            		"         </messages>\r\n" + 
+            		"      </CreateIncidentResponse>\r\n" + 
+            		"   </SOAP-ENV:Body>\r\n" + 
+            		"</SOAP-ENV:Envelope>\r\n" + 
+            		"";
+            InputStream is = new ByteArrayInputStream(send.getBytes());
+            SOAPMessage soapResponse = MessageFactory.newInstance().createMessage(null, is);
+           Document doc= parseSoapResponse(soapResponse);
+           if (doc.hasChildNodes()) 
+			{
+        	   resultedIncidentId=	ParseAndUpdateSoapResponse(doc.getChildNodes());
+				System.out.println(resultedIncidentId);
+				//sb.append(res);
+			}
+            //String soapString=soapResponse.toString();
             TimeUnit.MILLISECONDS.sleep(200);
             // Print the SOAP Response
             System.out.println("Response SOAP Message:");
@@ -727,19 +705,23 @@ class XMLReader {
             System.out.println();
             soapConnection.close();
             TimeUnit.MILLISECONDS.sleep(50);
-        } catch (Exception e) {
+         }
+        catch (Exception e)
+        {
             System.err.println("\nError occurred while sending SOAP Request to Server!\nMake sure you have the correct endpoint URL and SOAPAction!\n");
             e.printStackTrace();
+            appendToFile(e);
         }
+       return resultedIncidentId;
     }
-
-    private static SOAPMessage createSOAPRequest(String soapAction, String strXML) throws Exception {
+    //To create proper SOAP Message including Headers ETC.
+    private static SOAPMessage createSOAPRequest(String soapAction, String strXML, String actionName) throws Exception {
         MessageFactory messageFactory = MessageFactory.newInstance();
         String UNPass=configPropeties.getWebServiceUserName()+":"+configPropeties.getWebServicePassword();
         MimeHeaders hd = new MimeHeaders();
 		String encoding = DatatypeConverter.printBase64Binary(UNPass.getBytes("UTF-8"));
         hd.addHeader("Authorization", "Basic " + encoding);
-        hd.addHeader("SOAPAction", configPropeties.getSOAPActionName());
+        hd.addHeader("SOAPAction", actionName);
         hd.addHeader("endPoint", soapAction);//"http://smsvr1-dkl-2a.scnrop.gov.om:13081/SM/7/CreateIncident"
         hd.setHeader("Content-Type", "text/xml;charset=utf-8");
 		SOAPMessage msg = messageFactory.createMessage(hd, new ByteArrayInputStream(strXML.getBytes()));
@@ -758,15 +740,184 @@ class XMLReader {
         System.out.println("\n");
         return msg;
     }
-public class UploadAPIMethod implements Callable<String>
-{
+    public static List<String> getFullNameFromXml(String response, String tagName) throws Exception 
+    {
+    	List<String> ids;
+    	try 
+    	{
+        Document xmlDoc = loadXMLString(response);
+        NodeList nodeList = xmlDoc.getElementsByTagName(tagName);
+        ids = new ArrayList<String>(nodeList.getLength());
+        for(int i=0;i<nodeList.getLength(); i++) {
+            Node x = nodeList.item(i);
+            ids.add(x.getFirstChild().getNodeValue());             
+            System.out.println(nodeList.item(i).getFirstChild().getNodeValue());
+        }
 
-	@Override
-	public String call() throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+    	}
+    	catch(Exception e)
+    	{
+    		ids=null;
+    		appendToFile(e);
+    	}
+        return ids;
+    }
+    private static Document parseSoapResponse(SOAPMessage soapMessage)
+    {
+    	//String []Res;
+    	 final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+         try 
+         {
+			soapMessage.writeTo(baos);
+			final InputSource inputSource = new InputSource(new StringReader(
+		             new String(baos.toByteArray())));
+		         final DocumentBuilderFactory dbFactory = DocumentBuilderFactory
+		             .newInstance();
+		         final DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+		         final Document doc = dBuilder.parse(inputSource);
+		      return doc; //doc.normalize();
+			
+		} 
+         catch (Exception e)
+         {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
+         
+    }
+    public static Document loadXMLString(String response) throws Exception
+    {
+    	try
+    	{
+    		
+        DocumentBuilderFactory dbf =DocumentBuilderFactory.newInstance();
+        DocumentBuilder db = dbf.newDocumentBuilder();
+        InputSource is = new InputSource(new StringReader(response));
+
+        return db.parse(is);
+    	}
+    	catch(Exception ex)
+    	{
+    		appendToFile(ex);
+    		return null;
+    	}
+    }
+    private static ResultSet getAlarmsStateData(String query) throws ClassNotFoundException
+    {
+    	Class.forName("com.mysql.jdbc.Driver");
+
+        Connection conn;
+        ResultSet rs;
+		try 
+		{
+			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/rop_ticketing","root","abc123");
+			Statement s = conn.createStatement();
+	    	rs = s.executeQuery(query);
+	    	//md = rs.getMetaData();
+	    	
+		}
+		catch (SQLException e)
+		{
+			rs=null;
+			e.printStackTrace();
+			appendToFile(e);
+		}
+		return rs;
+    	
+    }
+    
+    private static int SaveAlarmState(String query) throws SQLException, ClassNotFoundException
+    {
+    	int result=0;
+    	try 
+    	{
+    	Class.forName("com.mysql.jdbc.Driver");
+
+        Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/rop_ticketing","root","abc123");
+
+        Statement st = con.createStatement();
+        st.execute(query);
+    	//Comment
+    	}
+    	catch(Exception e)
+    	{
+    		appendToFile(e);
+    	}
+    	return result;
+    }
+    
+    private static String ParseAndUpdateSoapResponse(NodeList nodeList) throws IOException, UnsupportedOperationException, SOAPException {
+		String result = "";
+		for (int count = 0; count < nodeList.getLength(); count++)
+		{
+			if(result !="")
+				break;
+			Node tempNode = nodeList.item(count);
+			// make sure it's element node.
+			if (tempNode.getNodeType() == Node.ELEMENT_NODE) 
+			{
+				String nodeName=tempNode.getNodeName();
+				switch (nodeName)
+				{
+				case "CreateIncidentResponse":
+					result=getResponseNodesData(tempNode);
+					break;
+				default:
+					break;
+				}
+				/*
+				 * if(nodeName=="rootcause") { result=getNodesData(tempNode); }
+				 */
+				if (tempNode.hasChildNodes() && result=="") 
+				{
+
+					// loop again if has child nodes
+					result=ParseAndUpdateSoapResponse(tempNode.getChildNodes());
+				}
+				}
+
+		}
+		return result;
 	}
-	
-}
+    public static String getResponseNodesData(Node tempNode)//NamedNodeMap nnm)
+	{
+		String IncidentID="";
+		NodeList list= tempNode.getChildNodes();
+		boolean breakOuterloop=false;
+		//NamedNodeMap tempNamedNodeMap=tempNode.getAttributes();
+		for (int count = 0; count < list.getLength(); count++)
+		{
+			if(breakOuterloop)
+				break;
+			try
+			{
+			//NamedNodeMap tempNamedNodeMap=tempNode.getAttributes();//getChildNodes();
+			String nodeName=list.item(count).getNodeName();
+			//NodeList tempNamedNodeMap;
+			if(nodeName=="model")
+			{
+				NodeList tempNamedNodeMap=list.item(count).getChildNodes();
+				for (int subCount = 0; subCount < tempNamedNodeMap.getLength(); subCount++)
+				{
+				 String subNodeName=tempNamedNodeMap.item(count).getTextContent().trim();
+				 if(subNodeName !="" && subNodeName !=null)
+				 {
+				 IncidentID=subNodeName;
+				 breakOuterloop=true;
+				// System.out.println(subNodeName);
+				 break;
+				 }
+				
+				}
+			}
+			}
+			catch(Exception ex)
+			{
+				appendToFile(ex);
+			}
+		}
+	return IncidentID;
+	}
 }
 
