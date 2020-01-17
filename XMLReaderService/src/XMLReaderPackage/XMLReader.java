@@ -96,6 +96,7 @@ class XMLReader
 
 	private static String OSName = null;
 	static Configurations configPropeties = new Configurations();
+	static ConnectionPoolManager cpm=new ConnectionPoolManager();
 	//Main Method 
 	//Calling getconfigPropetiess method
 	//Calling startPollingTimer
@@ -307,6 +308,7 @@ class XMLReader
 		}
 
 	}
+	//Comment Test
 //Used to print/write xml data.
 	private static  String printNote(NodeList nodeList) throws IOException, UnsupportedOperationException, SOAPException {
 		String result = "";
@@ -324,7 +326,6 @@ class XMLReader
 				}
 				if (tempNode.hasChildNodes()) 
 				{
-
 					// loop again if has child nodes
 					result=printNote(tempNode.getChildNodes());
 				}
@@ -805,13 +806,10 @@ class XMLReader
     }
     private static ResultSet getAlarmsStateData(String query) throws ClassNotFoundException
     {
-    	Class.forName("com.mysql.jdbc.Driver");
-
-        Connection conn;
+    	Connection conn= cpm.getConnectionFromPool();
         ResultSet rs;
 		try 
 		{
-			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/rop_ticketing","root","abc123");
 			Statement s = conn.createStatement();
 	    	rs = s.executeQuery(query);
 	    	//md = rs.getMetaData();
@@ -823,19 +821,20 @@ class XMLReader
 			e.printStackTrace();
 			appendToFile(e);
 		}
+		finally
+		{
+			cpm.returnConnectionToPool(conn);
+		}
 		return rs;
     	
     }
-    
     private static int SaveAlarmState(String query) throws SQLException, ClassNotFoundException
     {
+    	Connection con= cpm.getConnectionFromPool();
     	int result=0;
     	try 
     	{
-    	Class.forName("com.mysql.jdbc.Driver");
-
-        Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/rop_ticketing","root","abc123");
-
+    	//Connection con=GetConnection();
         Statement st = con.createStatement();
         st.execute(query);
     	//Comment
@@ -843,6 +842,10 @@ class XMLReader
     	catch(Exception e)
     	{
     		appendToFile(e);
+    	}
+    	finally
+    	{
+    		cpm.returnConnectionToPool(con);
     	}
     	return result;
     }
