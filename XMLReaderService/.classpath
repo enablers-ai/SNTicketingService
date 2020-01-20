@@ -58,5 +58,6 @@
 	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/slf4j-api-1.7.25.jar"/>
 	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/slf4j-log4j12-1.7.25.jar"/>
 	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/base64-2.3.7.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/Java/jre1.8.0_201/lib/mysql-connector-java-5.1.48.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
