@@ -106,6 +106,8 @@ class XMLReader
 		OSName = System.getProperty("os.name").toLowerCase();
 		
 		configPropeties= getconfigPropetiess();
+//		cpm=new ConnectionPoolManager("jdbc:mysql://"+configPropeties.getDataBaseURL(),
+//				configPropeties.getDataBaseUserName(), configPropeties.getDataBasePassword());
 		String serverCompleteUrl= configPropeties.getServerAPIUrl()+configPropeties.getAlarmsActionUrl();
 		//ParseXML();
 		//executePost(serverCompleteUrl,"");

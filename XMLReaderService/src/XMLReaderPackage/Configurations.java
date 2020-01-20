@@ -79,6 +79,18 @@ public class Configurations {
 		@SerializedName("SOAPActionNameUpdate")
 		@Expose
 		private String SOAPActionNameUpdate;
+		//DataBaseURL
+		@SerializedName("DataBaseURL")
+		@Expose
+		private String DataBaseURL;
+		//DataBaseUserName
+		@SerializedName("DataBaseUserName")
+		@Expose
+		private String DataBaseUserName;
+		//DataBasePassword
+		@SerializedName("DataBasePassword")
+		@Expose
+		private String DataBasePassword;
 		//WinndowsExceptionsPath
 		public String getWinndowsExceptionsPath() {
 		return winndowsExceptionsPath;
@@ -229,5 +241,32 @@ public class Configurations {
 
 		public void setSOAPActionNameUpdate(String SOAPActionNameUpdate) {
 		this.SOAPActionNameUpdate = SOAPActionNameUpdate;
+		}
+		//DataBaseURL
+		public String getDataBaseURL() 
+		{
+		return DataBaseURL;
+		}
+
+		public void setDataBaseURL(String DataBaseURL) {
+		this.DataBaseURL = DataBaseURL;
+		}
+		//DataBaseUserName
+		public String getDataBaseUserName() 
+		{
+		return DataBaseUserName;
+		}
+
+		public void setDataBaseUserName(String DataBaseUserName) {
+		this.DataBaseUserName = DataBaseUserName;
+		}
+		//DataBasePassword
+		public String getDataBasePassword() 
+		{
+		return DataBasePassword;
+		}
+
+		public void setDataBasePassword(String DataBasePassword) {
+		this.DataBasePassword = DataBasePassword;
 		}
 }

@@ -10,8 +10,7 @@ public class ConnectionPoolManager
 
 	 Vector connectionPool = new Vector();
 
-	 public ConnectionPoolManager()
-	 {
+	 public ConnectionPoolManager(){
 	  initialize();
 	 }
 
