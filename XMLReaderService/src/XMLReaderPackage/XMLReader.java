@@ -426,8 +426,18 @@ class XMLReader
 				}
 				else
 				{
+					String incidentId=res.getString("incident_id");
+					String updateSOAP= getUpdateTicketSoap(incidentId, severityInt, alarmCount);
 					//should be update call in future.
 					actionName=configPropeties.getSOAPActionNameUpdate();
+					try
+					{
+					  String IncidentId=callSoapWebService(updateSOAP, actionName);
+					}
+					catch(Exception ex)
+					{
+						appendToFile(ex);
+					}
 					query="update alarm_ticket set alarm_count=" + alarmCount + ""
 					+", alarm_severity='" + severity + "', action_executed='updated'"
 					+", action_executed_datetime= '" + getSystemCurentTime() + "' where"
@@ -481,6 +491,7 @@ class XMLReader
 		String result="";
 		return result;
 	}
+	//Method to get SOAP response to create new ticket.
 	private static String getCreateTicketSoap(String title, String descriptionString, int severityInt, long alarmId)
 	{
 		StringBuilder sb=new StringBuilder();
@@ -519,9 +530,35 @@ class XMLReader
 //					"</request-data>");
 		return sb.toString();
 	}
-	private static String getUpdateTicketSoap()
+	//Method to get SOAP response to update an existing ticket.
+	private static String getUpdateTicketSoap(String incidentId, long severity, long alarmCount)
 	{
 		StringBuilder sb=new StringBuilder();
+		sb.append("<?xml version=\"1.0\" standalone=\"no\"?>\r\n");
+		sb.append("<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns=\"http://schemas.hp.com/SM/7\" xmlns:com=\"http://schemas.hp.com/SM/7/Common\" xmlns:xm=\"http://www.w3.org/2005/05/xmlmime\">\r\n" + 
+				"<soapenv:Header/>\r\n" + 
+				"<soapenv:Body>\r\n");
+		sb.append("<ns:UpdateIncidentRequest attachmentInfo=\"?\" attachmentData=\"?\" ignoreEmptyElements=\"true\" updateconstraint=\"-1\">\r\n" + 
+				"         <ns:model>\r\n" + 
+				"            <ns:keys>\r\n" + 
+				"               <!--Optional:-->\r\n" + 
+				"               <ns:IncidentID>" + incidentId + "</ns:IncidentID>\r\n" + 
+				"            </ns:keys>\r\n" + 
+				"            <ns:instance>\r\n" + 
+				"                        \r\n" + 
+				" \r\n" + 
+				"               <JournalUpdates>\r\n" + 
+				"                  <JournalUpdates>"+severity+"</JournalUpdates>\r\n" + 
+				"		  		   <JournalUpdates>" + alarmCount + "</JournalUpdates>\r\n" + 
+				"               </JournalUpdates>\r\n" + 
+				"               \r\n" + 
+				"            </ns:instance>\r\n" + 
+				"            <!--Optional:-->\r\n" + 
+				"            \r\n" + 
+				"         </ns:model>\r\n" + 
+				"      </ns:UpdateIncidentRequest>");
+		sb.append("</soapenv:Body>\r\n" + 
+				"</soapenv:Envelope>");
 		return sb.toString();
 	}
 	
