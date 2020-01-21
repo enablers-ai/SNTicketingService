@@ -66,16 +66,16 @@ public class ConnectionPoolManager
 	  {
 	   Class.forName("com.mysql.jdbc.Driver");
 	   connection = DriverManager.getConnection(databaseUrl, userName, password);
-	   System.out.println("Connection: "+connection);
+	   //System.out.println("Connection: "+connection);
 	  }
 	  catch(SQLException sqle)
 	  {
-	   System.err.println("SQLException: "+sqle);
+	   //System.err.println("SQLException: "+sqle);
 	   return null;
 	  }
 	  catch(ClassNotFoundException cnfe)
 	  {
-	   System.err.println("ClassNotFoundException: "+cnfe);
+	   //System.err.println("ClassNotFoundException: "+cnfe);
 	   return null;
 	  }
 

@@ -421,7 +421,7 @@ class XMLReader
 				count= res.getInt("alarm_count");
 				severityDB=res.getString("alarm_severity");
 				//if(count<alarmCount || severityDB !=severity)
-				if(count==alarmCount && severityDB ==severity)
+				if(count==alarmCount && severityDB.toLowerCase().trim().equals(severity.toLowerCase().trim()))
 				{
 					sendRequest=false;
 					//do nothing so for.
@@ -735,15 +735,15 @@ class XMLReader
            if (doc.hasChildNodes()) 
 			{
         	   resultedIncidentId=	ParseAndUpdateSoapResponse(doc.getChildNodes());
-				System.out.println(resultedIncidentId);
+				//System.out.println(resultedIncidentId);
 				//sb.append(res);
 			}
             //String soapString=soapResponse.toString();
             TimeUnit.MILLISECONDS.sleep(200);
             // Print the SOAP Response
-            System.out.println("Response SOAP Message:");
-            soapResponse.writeTo(System.out);
-            System.out.println();
+            //System.out.println("Response SOAP Message:");
+            //soapResponse.writeTo(System.out);
+            //System.out.println();
             soapConnection.close();
             TimeUnit.MILLISECONDS.sleep(50);
          }
@@ -776,9 +776,9 @@ class XMLReader
         msg.saveChanges();
 
         /* Print the request message, just for debugging purposes */
-        System.out.println("Request SOAP Message:");
-        msg.writeTo(System.out);
-        System.out.println("\n");
+       // System.out.println("Request SOAP Message:");
+       // msg.writeTo(System.out);
+       // System.out.println("\n");
         return msg;
     }
     public static List<String> getFullNameFromXml(String response, String tagName) throws Exception 
@@ -792,7 +792,7 @@ class XMLReader
         for(int i=0;i<nodeList.getLength(); i++) {
             Node x = nodeList.item(i);
             ids.add(x.getFirstChild().getNodeValue());             
-            System.out.println(nodeList.item(i).getFirstChild().getNodeValue());
+            //System.out.println(nodeList.item(i).getFirstChild().getNodeValue());
         }
 
     	}
