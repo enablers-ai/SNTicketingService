@@ -96,7 +96,7 @@ class XMLReader
 
 	private static String OSName = null;
 	static Configurations configPropeties = new Configurations();
-	static ConnectionPoolManager cpm=new ConnectionPoolManager();
+	static ConnectionPoolManager cpm=null;//new ConnectionPoolManager();
 	//Main Method 
 	//Calling getconfigPropetiess method
 	//Calling startPollingTimer
@@ -106,8 +106,8 @@ class XMLReader
 		OSName = System.getProperty("os.name").toLowerCase();
 		
 		configPropeties= getconfigPropetiess();
-//		cpm=new ConnectionPoolManager("jdbc:mysql://"+configPropeties.getDataBaseURL(),
-//				configPropeties.getDataBaseUserName(), configPropeties.getDataBasePassword());
+		cpm=new ConnectionPoolManager("jdbc:mysql://"+configPropeties.getDataBaseURL(),
+				configPropeties.getDataBaseUserName(), configPropeties.getDataBasePassword());
 		String serverCompleteUrl= configPropeties.getServerAPIUrl()+configPropeties.getAlarmsActionUrl();
 		//ParseXML();
 		//executePost(serverCompleteUrl,"");
@@ -187,6 +187,7 @@ class XMLReader
 			{
 				file.createNewFile();
 			}
+			//fw = new FileWriter ("exception.txt", true);
 			FileWriter fstream = new FileWriter(file.getPath(), true);
 			BufferedWriter out = new BufferedWriter(fstream);
 			PrintWriter pWriter = new PrintWriter(out, true);
@@ -213,7 +214,7 @@ class XMLReader
 			if (OSName.indexOf("win") >= 0) 
 			{
 				//UTF_Encoding="UTF-8";
-			input = new FileInputStream("D:\\Projects\\SNTicketingService\\XMLReaderService\\configurations.properties");
+			input = new FileInputStream("D:\\SNTicket\\SNTicketingService\\XMLReaderService\\configurations.properties");
 			}
 			else
 			{

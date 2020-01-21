@@ -265,7 +265,6 @@ public class Configurations {
 		{
 		return DataBasePassword;
 		}
-
 		public void setDataBasePassword(String DataBasePassword) {
 		this.DataBasePassword = DataBasePassword;
 		}

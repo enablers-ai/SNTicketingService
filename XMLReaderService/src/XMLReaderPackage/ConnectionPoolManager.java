@@ -4,9 +4,9 @@ import java.sql.*;
 
 public class ConnectionPoolManager 
 {
-	String databaseUrl = "jdbc:mysql://localhost:3306/rop_ticketing";
-	 String userName = "root";
-	 String password = "abc123";
+	String databaseUrl = "";//jdbc:mysql://localhost:3306/rop_ticketing
+	 String userName = "";//root
+	 String password = "";//abc123
 
 	 Vector connectionPool = new Vector();
 
