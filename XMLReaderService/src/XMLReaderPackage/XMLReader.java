@@ -449,8 +449,8 @@ class XMLReader
 					}
 					query="update alarm_ticket set alarm_count=" + alarmCount + ""
 					+", alarm_severity='" + severity + "', action_executed='updated'"
-					+", action_executed_datetime= '" + getSystemCurentTime() + "' where"
-					+" alarm_id =" + alarmId + "";
+					+", alarm_commitId=" + commitId + ", action_executed_datetime="
+					+"'" + getSystemCurentTime() + "' where alarm_id =" + alarmId + "";
 					try 
 					{
 						SaveAlarmState(query);
