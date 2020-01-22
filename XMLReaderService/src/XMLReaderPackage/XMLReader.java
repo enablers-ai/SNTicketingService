@@ -46,6 +46,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import javax.jnlp.UnavailableServiceException;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
@@ -87,6 +88,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import com.google.gson.Gson;
+import com.sun.xml.internal.ws.wsdl.parser.InaccessibleWSDLException;
 
 import java.io.InputStream;
 import org.w3c.dom.NamedNodeMap;
@@ -368,6 +370,10 @@ class XMLReader
 			if(node.getNodeName()=="severity")
 			{
 				severity=node.getNodeValue();
+				if(severity.trim().toLowerCase().equals("marginal") || severity.trim().toLowerCase().equals("minor"))
+				{
+					return null;
+				}
 				switch (node.getNodeName()) 
 				{
 				  case "critical":
@@ -466,6 +472,8 @@ class XMLReader
 					//System.out.println(sb.toString());
 				}
 				//System.out.println(formatter.format(date));
+				if(IncidentId != null && !IncidentId.isEmpty())
+				{
 				query="INSERT INTO alarm_ticket (alarm_id, alarm_severity, alarm_count,"
 				+" action_executed, action_executed_datetime, alarm_commitId, incident_id) VALUES "
 				+"(" + alarmId + ", '" + severity + "', " + alarmCount + ", " + "'Created'" + " ,"
@@ -482,7 +490,11 @@ class XMLReader
 				{
 					appendToFile(e);
 				}
-				
+				}
+				else if(IncidentId == null || IncidentId.isEmpty())
+				{
+					throw new  MicrofocusServerException("Exception occured while accessing microfocus server."+ IncidentId); 
+				}
 			}
 			
 			//callSoapWebService(sb.toString());
@@ -740,13 +752,13 @@ class XMLReader
 				//sb.append(res);
 			}
             //String soapString=soapResponse.toString();
-            TimeUnit.MILLISECONDS.sleep(200);
+            //TimeUnit.MILLISECONDS.sleep(200);
             // Print the SOAP Response
             //System.out.println("Response SOAP Message:");
             //soapResponse.writeTo(System.out);
             //System.out.println();
             soapConnection.close();
-            TimeUnit.MILLISECONDS.sleep(50);
+            //TimeUnit.MILLISECONDS.sleep(50);
          }
         catch (Exception e)
         {
@@ -964,4 +976,3 @@ class XMLReader
 	return IncidentID;
 	}
 }
-
