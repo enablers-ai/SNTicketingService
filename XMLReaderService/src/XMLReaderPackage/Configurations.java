@@ -79,6 +79,10 @@ public class Configurations {
 		@SerializedName("SOAPActionNameUpdate")
 		@Expose
 		private String SOAPActionNameUpdate;
+		//SOAPActionNameResolve
+		@SerializedName("SOAPActionNameResolve")
+		@Expose
+		private String SOAPActionNameResolve;
 		//DataBaseURL
 		@SerializedName("DataBaseURL")
 		@Expose
@@ -241,6 +245,15 @@ public class Configurations {
 
 		public void setSOAPActionNameUpdate(String SOAPActionNameUpdate) {
 		this.SOAPActionNameUpdate = SOAPActionNameUpdate;
+		}
+		//SOAPActionNameResolve
+		public String getSOAPActionNameResolve() 
+		{
+		return SOAPActionNameResolve;
+		}
+
+		public void setSOAPActionNameResolve(String SOAPActionNameResolve) {
+		this.SOAPActionNameResolve = SOAPActionNameResolve;
 		}
 		//DataBaseURL
 		public String getDataBaseURL() 

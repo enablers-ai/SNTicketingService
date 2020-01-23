@@ -34,6 +34,7 @@ import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
@@ -99,6 +100,7 @@ class XMLReader
 	private static String OSName = null;
 	static Configurations configPropeties = new Configurations();
 	static ConnectionPoolManager cpm=null;//new ConnectionPoolManager();
+	static StringBuilder allAlarmIds = null;
 	//Main Method 
 	//Calling getconfigPropetiess method
 	//Calling startPollingTimer
@@ -131,6 +133,7 @@ class XMLReader
 				{
 					try 
 					{
+					allAlarmIds = new StringBuilder();
 					executePost(serverCompleteUrl,"");
 					ParseXML();
 					//String APIResults= UploadFileAPI();
@@ -288,25 +291,27 @@ class XMLReader
 			{
 				String res=	printNote(doc.getChildNodes());
 				sb.append(res);
+				//CLoseALarmsTicketsMethod
+				//closeAlarmsTickets(allAlarmIds.toString());
 			}
-			File fileParsed;
+			//File fileParsed;
 
-			if (OSName.indexOf("win") >= 0)
-			{
-				fileParsed= new File(configPropeties.getParsedXMLPathWindows());
-			} 
-			else
-			{
-				fileParsed = new File(configPropeties.getParsedXMLPathLinux());
-			}
-			if (!fileParsed.exists())
-			{
-				fileParsed.createNewFile();
-			}
-			try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileParsed))) 
-			{
-				writer.write(sb.toString());
-			}
+//			if (OSName.indexOf("win") >= 0)
+//			{
+//				fileParsed= new File(configPropeties.getParsedXMLPathWindows());
+//			} 
+//			else
+//			{
+//				fileParsed = new File(configPropeties.getParsedXMLPathLinux());
+//			}
+//			if (!fileParsed.exists())
+//			{
+//				fileParsed.createNewFile();
+//			}
+//			try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileParsed))) 
+//			{
+//				writer.write(sb.toString());
+//			}
 		} catch (Exception e) 
 		{
 			appendToFile(e);
@@ -317,6 +322,7 @@ class XMLReader
 //Used to print/write xml data.
 	private static  String printNote(NodeList nodeList) throws IOException, UnsupportedOperationException, SOAPException {
 		String result = "";
+	    
 		for (int count = 0; count < nodeList.getLength(); count++)
 		{
 
@@ -327,7 +333,14 @@ class XMLReader
 				String nodeName=tempNode.getNodeName();
 				if(nodeName=="rootcause")
 				{
-					result=getNodesData(tempNode);
+					long resultAlarmId=getNodesData(tempNode);
+					if(resultAlarmId !=0)
+					{
+						if(allAlarmIds == null || allAlarmIds.toString().equals(""))
+						allAlarmIds.append(resultAlarmId);
+						else
+							allAlarmIds.append(", " + resultAlarmId);
+					}
 				}
 				if (tempNode.hasChildNodes()) 
 				{
@@ -339,8 +352,36 @@ class XMLReader
 		}
 		return result;
 	}
+	
+	private static void closeAlarmsTickets(String alarmsList)
+	{
+		ResultSet res=null;
+		try
+		{
+		String getQuery="Select alarm_id, incident_id from alarm_ticket where action_executed !='Closed'";
+		if(!alarmsList.isEmpty())
+			getQuery= getQuery+" and alarm_id not in(" + alarmsList + ")" ; 
+		res= getAlarmsStateData(getQuery);
+		if(res !=null && res.next())
+		{
+			String actionName=configPropeties.getSOAPActionNameResolve();
+			while (res.next()) {
+				String resultedMessageAndIncidentId[]=new String[2];
+				long alarmId= res.getLong("alarm_id");
+				String incidentId=res.getString("incident_id");
+				String ResolveTicketSoap=getResolveTicketSoap(incidentId, alarmId);
+			    resultedMessageAndIncidentId=callSoapWebService(ResolveTicketSoap, actionName);
+				String IncidentId=resultedMessageAndIncidentId[1];
+			}
+		}
+		}
+		catch(Exception ex)
+		{
+			appendToFile(ex);
+		}
+	}
 	//To format XML Nodes data according to required SOAP Format.
-	public static String getNodesData(Node tempNode)//NamedNodeMap nnm)
+	public static long getNodesData(Node tempNode)//NamedNodeMap nnm)
 	{
 		boolean sendRequest=false;
 		StringBuilder sb = new StringBuilder();
@@ -372,7 +413,7 @@ class XMLReader
 				severity=node.getNodeValue();
 				if(severity.trim().toLowerCase().equals("marginal") || severity.trim().toLowerCase().equals("minor"))
 				{
-					return null;
+					return 0;
 				}
 				switch (node.getNodeName()) 
 				{
@@ -414,7 +455,7 @@ class XMLReader
 		String getQuery="Select * from alarm_ticket where action_executed !='Closed'"
 				+" AND alarm_id=" + alarmId + " "; //+ alarmCount + " > alarm_count";
 		ResultSet res =null;
-		
+		String resultedMessageAndIncidentId[]=new String[2];
 		try
 		{
 			String query="";
@@ -431,7 +472,7 @@ class XMLReader
 				{
 					sendRequest=false;
 					//do nothing so for.
-					return null;
+					return alarmId;
 				}
 				else
 				{
@@ -441,12 +482,14 @@ class XMLReader
 					actionName=configPropeties.getSOAPActionNameUpdate();
 					try
 					{
-					  String IncidentId=callSoapWebService(updateSOAP, actionName);
+					   resultedMessageAndIncidentId=callSoapWebService(updateSOAP, actionName);
 					}
 					catch(Exception ex)
 					{
 						appendToFile(ex);
 					}
+					if(resultedMessageAndIncidentId[0].equals("Success"))
+					{
 					query="update alarm_ticket set alarm_count=" + alarmCount + ""
 					+", alarm_severity='" + severity + "', action_executed='updated'"
 					+", alarm_commitId=" + commitId + ", action_executed_datetime="
@@ -459,6 +502,7 @@ class XMLReader
 					{
 						appendToFile(e);
 					} 
+					}
 				}
 			}
 			else
@@ -468,11 +512,12 @@ class XMLReader
 				String IncidentId="";
 				if(sendRequest)
 				{
-					IncidentId=callSoapWebService(SOAPRes, actionName);
+					 resultedMessageAndIncidentId=callSoapWebService(SOAPRes, actionName);
+					 IncidentId=resultedMessageAndIncidentId[1];
 					//System.out.println(sb.toString());
 				}
 				//System.out.println(formatter.format(date));
-				if(IncidentId != null && !IncidentId.isEmpty())
+				if(resultedMessageAndIncidentId[0].equals("Success"))
 				{
 				query="INSERT INTO alarm_ticket (alarm_id, alarm_severity, alarm_count,"
 				+" action_executed, action_executed_datetime, alarm_commitId, incident_id) VALUES "
@@ -503,8 +548,7 @@ class XMLReader
 		{
 			appendToFile(e);
 		}
-		String result="";
-		return result;
+		return alarmId;
 	}
 	//Method to get SOAP response to create new ticket.
 	private static String getCreateTicketSoap(String title, String descriptionString, int severityInt, long alarmId)
@@ -526,8 +570,8 @@ class XMLReader
 		sb.append(descriptionString);
 		sb.append("</ns:Description>\r\n");
 		sb.append(" <ns:Category type=\"String\">Incident</ns:Category>\r\n");
-		sb.append("<ns:Area type=\"String\">Stablenet</ns:Area>\r\n");
-		sb.append("<ns:Subarea type=\"String\">Alarm</ns:Subarea>\r\n");
+		sb.append("<ns:Area type=\"String\">performance</ns:Area>\r\n");
+		sb.append("<ns:Subarea type=\"String\">performance degradation</ns:Subarea>\r\n");
 		sb.append("<ns:Urgency type=\"String\">"+severityInt+"</ns:Urgency>\r\n ");
 		sb.append("<ns:AssignmentGroup type=\"String\" >ROP HELPDESK</ns:AssignmentGroup>\r\n");
 		sb.append("<ns:Service type=\"String\">CI1001366</ns:Service>\r\n");
@@ -576,7 +620,34 @@ class XMLReader
 				"</soapenv:Envelope>");
 		return sb.toString();
 	}
-	
+	private static String getResolveTicketSoap(String incidentId, long alarmId)
+	{
+		StringBuilder sb=new StringBuilder();
+		sb.append("<?xml version=\"1.0\" standalone=\"no\"?>\r\n");
+		sb.append("<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:ns=\"http://schemas.hp.com/SM/7\" xmlns:com=\"http://schemas.hp.com/SM/7/Common\" xmlns:xm=\"http://www.w3.org/2005/05/xmlmime\">\r\n" + 
+				"<soapenv:Header/>\r\n" + 
+				"<soapenv:Body>\r\n");
+		sb.append("<ns:ResolveIncidentRequest attachmentInfo=\"\" attachmentData=\"\" ignoreEmptyElements=\"true\" updateconstraint=\"-1\">\r\n" + 
+				"         <ns:model query=\"\">\r\n" + 
+				"            <ns:keys query=\"\" updatecounter=\"\">\r\n" + 
+				"               <ns:IncidentID type=\"String\" mandatory=\"?\" readonly=\"?\">" + incidentId + "</ns:IncidentID>\r\n" + 
+				"			<!--<ns:ExternalID type=\"String\" mandatory=\"\" readonly=\"\">1568808040464308</ns:ExternalID>-->\r\n" + 
+				"            </ns:keys>\r\n" + 
+				"            <ns:instance query=\"\" uniquequery=\"\" recordid=\"\" updatecounter=\"\">\r\n" + 
+				"               \r\n" + 
+				"               <!--Optional:-->\r\n" + 
+				"               <ns:Solution type=\"String\" mandatory=\"?\" readonly=\"?\">Alarm resolved</ns:Solution>\r\n" + 
+				"               <ns:ClosureCode type=\"String\" mandatory=\"?\" readonly=\"?\">Automatically Closed</ns:ClosureCode>\r\n" + 
+				"		     \r\n" + 
+				"               \r\n" + 
+				"            </ns:instance>\r\n" + 
+				"           \r\n" + 
+				"         </ns:model>\r\n" + 
+				"      </ns:ResolveIncidentRequest>");
+		sb.append("</soapenv:Body>\r\n" + 
+				"</soapenv:Envelope>");
+		return sb.toString();
+	}
 	 private static String getSystemCurentTime()
 	 {
 		 	SimpleDateFormat formatter= new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -690,9 +761,9 @@ class XMLReader
 	
 	//Simple
 	// TO Call SOAP method and Pass required SOAP Data.
-    private static synchronized String callSoapWebService(String strXML, String actionName) {
+    private static synchronized String[] callSoapWebService(String strXML, String actionName) {
     	//String soapEndpointUrl, String soapAction
-    	String resultedIncidentId="";
+    	String resultedMessageAndIncidentId[]=new String[2];
         try
         {
             // Create SOAP Connection
@@ -701,53 +772,53 @@ class XMLReader
             String soapEndpointUrl = configPropeties.getWebServiceInitialLink();
             String soapAction = configPropeties.getfileUploadUrl();//"http://www.webserviceX.NET/GetInfoByCity";
             // Send SOAP Message to SOAP Server
-            SOAPMessage soapResponse = soapConnection.call(createSOAPRequest(soapAction, strXML, actionName), soapEndpointUrl);
+            //SOAPMessage soapResponse = soapConnection.call(createSOAPRequest(soapAction, strXML, actionName), soapEndpointUrl);
             //Response for test purposes.
-//            String send="<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\">\r\n" + 
-//            		"   <SOAP-ENV:Body>\r\n" + 
-//            		"      <CreateIncidentResponse message=\"Success\" returnCode=\"0\" schemaRevisionDate=\"2019-10-01\" schemaRevisionLevel=\"1\" status=\"SUCCESS\" xsi:schemaLocation=\"http://schemas.hp.com/SM/7 http://smsvr1-mct-1a.scnrop.gov.om:13080/SM/7/Incident.xsd\" xmlns=\"http://schemas.hp.com/SM/7\" xmlns:cmn=\"http://schemas.hp.com/SM/7/Common\" xmlns:xmime=\"http://www.w3.org/2005/05/xmlmime\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n" + 
-//            		"         <model>\r\n" + 
-//            		"            <keys>\r\n" + 
-//            		"               <IncidentID type=\"String\">IM575132</IncidentID>\r\n" + 
-//            		"            </keys>\r\n" + 
-//            		"            <instance recordid=\"IM575132 - Stablenet ALARM : Desription\" uniquequery=\"number=&quot;IM575132&quot;\">\r\n" + 
-//            		"               <IncidentID type=\"String\">IM575132</IncidentID>\r\n" + 
-//            		"               <Category type=\"String\">Incident</Category>\r\n" + 
-//            		"               <OpenTime type=\"DateTime\">2019-12-30T10:52:36+00:00</OpenTime>\r\n" + 
-//            		"               <OpenedBy type=\"String\">int-sn</OpenedBy>\r\n" + 
-//            		"               <Urgency type=\"String\">4</Urgency>\r\n" + 
-//            		"               <UpdatedTime type=\"DateTime\">2019-12-30T10:52:36+00:00</UpdatedTime>\r\n" + 
-//            		"               <AssignmentGroup type=\"String\">ROP-ETESALAT-FO</AssignmentGroup>\r\n" + 
-//            		"               <Description type=\"Array\">\r\n" + 
-//            		"                  <Description type=\"String\">text1</Description>\r\n" + 
-//            		"                  <Description type=\"String\">text2</Description>\r\n" + 
-//            		"                  <Description type=\"String\">text3</Description>\r\n" + 
-//            		"               </Description>\r\n" + 
-//            		"               <Title type=\"String\">Stablenet ALARM : Desription</Title>\r\n" + 
-//            		"               <UpdatedBy type=\"String\">int-sn</UpdatedBy>\r\n" + 
-//            		"               <Status type=\"String\">Categorize</Status>\r\n" + 
-//            		"               <Phase type=\"String\">Categorization</Phase>\r\n" + 
-//            		"               <Area type=\"String\">performance</Area>\r\n" + 
-//            		"               <Subarea type=\"String\">performance degradation</Subarea>\r\n" + 
-//            		"               <Impact type=\"String\">1</Impact>\r\n" + 
-//            		"               <Service display=\"Default\" type=\"String\">CI1001366</Service>\r\n" + 
-//            		"               <ExternalID type=\"String\">IM15</ExternalID>\r\n" + 
-//            		"            </instance>\r\n" + 
-//            		"         </model>\r\n" + 
-//            		"         <messages>\r\n" + 
-//            		"            <cmn:message type=\"String\">US/Mountain 12/30/19 03:52:36:  Incident IM575132 has been opened by int-sn</cmn:message>\r\n" + 
-//            		"            <cmn:message type=\"String\">Incident \"IM575132\" added.</cmn:message>\r\n" + 
-//            		"         </messages>\r\n" + 
-//            		"      </CreateIncidentResponse>\r\n" + 
-//            		"   </SOAP-ENV:Body>\r\n" + 
-//            		"</SOAP-ENV:Envelope>\r\n" + 
-//            		"";
-            //InputStream is = new ByteArrayInputStream(send.getBytes());
-            //SOAPMessage soapResponse = MessageFactory.newInstance().createMessage(null, is);
+            String send="<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\">\r\n" + 
+            		"   <SOAP-ENV:Body>\r\n" + 
+            		"      <CreateIncidentResponse message=\"Success\" returnCode=\"0\" schemaRevisionDate=\"2019-10-01\" schemaRevisionLevel=\"1\" status=\"SUCCESS\" xsi:schemaLocation=\"http://schemas.hp.com/SM/7 http://smsvr1-mct-1a.scnrop.gov.om:13080/SM/7/Incident.xsd\" xmlns=\"http://schemas.hp.com/SM/7\" xmlns:cmn=\"http://schemas.hp.com/SM/7/Common\" xmlns:xmime=\"http://www.w3.org/2005/05/xmlmime\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n" + 
+            		"         <model>\r\n" + 
+            		"            <keys>\r\n" + 
+            		"               <IncidentID type=\"String\">IM575132</IncidentID>\r\n" + 
+            		"            </keys>\r\n" + 
+            		"            <instance recordid=\"IM575132 - Stablenet ALARM : Desription\" uniquequery=\"number=&quot;IM575132&quot;\">\r\n" + 
+            		"               <IncidentID type=\"String\">IM575132</IncidentID>\r\n" + 
+            		"               <Category type=\"String\">Incident</Category>\r\n" + 
+            		"               <OpenTime type=\"DateTime\">2019-12-30T10:52:36+00:00</OpenTime>\r\n" + 
+            		"               <OpenedBy type=\"String\">int-sn</OpenedBy>\r\n" + 
+            		"               <Urgency type=\"String\">4</Urgency>\r\n" + 
+            		"               <UpdatedTime type=\"DateTime\">2019-12-30T10:52:36+00:00</UpdatedTime>\r\n" + 
+            		"               <AssignmentGroup type=\"String\">ROP-ETESALAT-FO</AssignmentGroup>\r\n" + 
+            		"               <Description type=\"Array\">\r\n" + 
+            		"                  <Description type=\"String\">text1</Description>\r\n" + 
+            		"                  <Description type=\"String\">text2</Description>\r\n" + 
+            		"                  <Description type=\"String\">text3</Description>\r\n" + 
+            		"               </Description>\r\n" + 
+            		"               <Title type=\"String\">Stablenet ALARM : Desription</Title>\r\n" + 
+            		"               <UpdatedBy type=\"String\">int-sn</UpdatedBy>\r\n" + 
+            		"               <Status type=\"String\">Categorize</Status>\r\n" + 
+            		"               <Phase type=\"String\">Categorization</Phase>\r\n" + 
+            		"               <Area type=\"String\">performance</Area>\r\n" + 
+            		"               <Subarea type=\"String\">performance degradation</Subarea>\r\n" + 
+            		"               <Impact type=\"String\">1</Impact>\r\n" + 
+            		"               <Service display=\"Default\" type=\"String\">CI1001366</Service>\r\n" + 
+            		"               <ExternalID type=\"String\">IM15</ExternalID>\r\n" + 
+            		"            </instance>\r\n" + 
+            		"         </model>\r\n" + 
+            		"         <messages>\r\n" + 
+            		"            <cmn:message type=\"String\">US/Mountain 12/30/19 03:52:36:  Incident IM575132 has been opened by int-sn</cmn:message>\r\n" + 
+            		"            <cmn:message type=\"String\">Incident \"IM575132\" added.</cmn:message>\r\n" + 
+            		"         </messages>\r\n" + 
+            		"      </CreateIncidentResponse>\r\n" + 
+            		"   </SOAP-ENV:Body>\r\n" + 
+            		"</SOAP-ENV:Envelope>\r\n" + 
+            		"";
+            InputStream is = new ByteArrayInputStream(send.getBytes());
+            SOAPMessage soapResponse = MessageFactory.newInstance().createMessage(null, is);
            Document doc= parseSoapResponse(soapResponse);
            if (doc.hasChildNodes()) 
 			{
-        	   resultedIncidentId=	ParseAndUpdateSoapResponse(doc.getChildNodes());
+        	   resultedMessageAndIncidentId = ParseAndUpdateSoapResponse(doc.getChildNodes(), actionName);
 				//System.out.println(resultedIncidentId);
 				//sb.append(res);
 			}
@@ -766,7 +837,7 @@ class XMLReader
             e.printStackTrace();
             appendToFile(e);
         }
-       return resultedIncidentId;
+       return resultedMessageAndIncidentId;
     }
     //To create proper SOAP Message including Headers ETC.
     private static SOAPMessage createSOAPRequest(String soapAction, String strXML, String actionName) throws Exception {
@@ -903,8 +974,10 @@ class XMLReader
     	return result;
     }
     
-    private static String ParseAndUpdateSoapResponse(NodeList nodeList) throws IOException, UnsupportedOperationException, SOAPException {
-		String result = "";
+    private static String[] ParseAndUpdateSoapResponse(NodeList nodeList, String actionName) throws IOException, UnsupportedOperationException, SOAPException {
+		String resultantArr[]= new String[2];
+    	String result = "";
+		String message="";
 		for (int count = 0; count < nodeList.getLength(); count++)
 		{
 			if(result !="")
@@ -917,24 +990,24 @@ class XMLReader
 				switch (nodeName)
 				{
 				case "CreateIncidentResponse":
+					Node messageNode = tempNode.getAttributes().getNamedItem("message");//.getNodeValue();//("message");//.getTextContent().trim();
+					message=messageNode.getNodeValue();
+					//if(actionName.equals(configPropeties.getSOAPActionNameCreate()))
 					result=getResponseNodesData(tempNode);
+					resultantArr[0]=message;
+					resultantArr[1]=result;
 					break;
 				default:
 					break;
 				}
-				/*
-				 * if(nodeName=="rootcause") { result=getNodesData(tempNode); }
-				 */
 				if (tempNode.hasChildNodes() && result=="") 
 				{
-
 					// loop again if has child nodes
-					result=ParseAndUpdateSoapResponse(tempNode.getChildNodes());
+					resultantArr=ParseAndUpdateSoapResponse(tempNode.getChildNodes(), actionName);
 				}
 				}
-
 		}
-		return result;
+		return resultantArr;
 	}
     public static String getResponseNodesData(Node tempNode)//NamedNodeMap nnm)
 	{
