@@ -372,9 +372,15 @@ class XMLReader
 				String ResolveTicketSoap=getResolveTicketSoap(incidentId, alarmId);
 			    resultedMessageAndIncidentId=callSoapWebService(ResolveTicketSoap, actionName);
 				String IncidentId=resultedMessageAndIncidentId[1];
+				if(resultedMessageAndIncidentId[0].equals("Success"))
+				{
 				String updateQuery="update alarm_ticket set action_executed='closed', "
 				+"action_executed_datetime = '" + getSystemCurentTime() + "' where alarm_id =" + alarmId +"";
 				boolean result= SaveAlarmState(updateQuery);
+				}
+				else
+					throw new  MicrofocusServerException("Exception occured while accessing microfocus server. Message is "
+				+"" + resultedMessageAndIncidentId[0] +"and Incident Id is "+ IncidentId +" and AlarmId is "+ alarmId);
 			}
 		}
 		}
@@ -993,8 +999,24 @@ class XMLReader
 				switch (nodeName)
 				{
 				case "CreateIncidentResponse":
-					Node messageNode = tempNode.getAttributes().getNamedItem("message");//.getNodeValue();//("message");//.getTextContent().trim();
-					message=messageNode.getNodeValue();
+					Node messageNodeCreate = tempNode.getAttributes().getNamedItem("message");//.getNodeValue();//("message");//.getTextContent().trim();
+					message=messageNodeCreate.getNodeValue();
+					//if(actionName.equals(configPropeties.getSOAPActionNameCreate()))
+					result=getResponseNodesData(tempNode);
+					resultantArr[0]=message;
+					resultantArr[1]=result;
+					break;
+				case "UpdateIncidentResponse":
+					Node messageNodeUpdate = tempNode.getAttributes().getNamedItem("message");//.getNodeValue();//("message");//.getTextContent().trim();
+					message=messageNodeUpdate.getNodeValue();
+					//if(actionName.equals(configPropeties.getSOAPActionNameCreate()))
+					result=getResponseNodesData(tempNode);
+					resultantArr[0]=message;
+					resultantArr[1]=result;
+					break;
+				case "ResolveIncidentResponse":
+					Node messageNodeResolve = tempNode.getAttributes().getNamedItem("message");//.getNodeValue();//("message");//.getTextContent().trim();
+					message=messageNodeResolve.getNodeValue();
 					//if(actionName.equals(configPropeties.getSOAPActionNameCreate()))
 					result=getResponseNodesData(tempNode);
 					resultantArr[0]=message;
