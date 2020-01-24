@@ -292,7 +292,7 @@ class XMLReader
 				String res=	printNote(doc.getChildNodes());
 				sb.append(res);
 				//CLoseALarmsTicketsMethod
-				//closeAlarmsTickets(allAlarmIds.toString());
+				closeAlarmsTickets(allAlarmIds.toString());
 			}
 			//File fileParsed;
 
@@ -362,7 +362,7 @@ class XMLReader
 		if(!alarmsList.isEmpty())
 			getQuery= getQuery+" and alarm_id not in(" + alarmsList + ")" ; 
 		res= getAlarmsStateData(getQuery);
-		if(res !=null && res.next())
+		if(res !=null)
 		{
 			String actionName=configPropeties.getSOAPActionNameResolve();
 			while (res.next()) {
@@ -372,6 +372,9 @@ class XMLReader
 				String ResolveTicketSoap=getResolveTicketSoap(incidentId, alarmId);
 			    resultedMessageAndIncidentId=callSoapWebService(ResolveTicketSoap, actionName);
 				String IncidentId=resultedMessageAndIncidentId[1];
+				String updateQuery="update alarm_ticket set action_executed='closed', "
+				+"action_executed_datetime = '" + getSystemCurentTime() + "' where alarm_id =" + alarmId +"";
+				boolean result= SaveAlarmState(updateQuery);
 			}
 		}
 		}
@@ -463,7 +466,7 @@ class XMLReader
 			int count= 0;
 			String severityDB="";
 			res =getAlarmsStateData(getQuery);
-			if(res !=null && res.next())
+			if(res !=null)
 			{
 				count= res.getInt("alarm_count");
 				severityDB=res.getString("alarm_severity");
@@ -773,7 +776,7 @@ class XMLReader
             String soapAction = configPropeties.getfileUploadUrl();//"http://www.webserviceX.NET/GetInfoByCity";
             // Send SOAP Message to SOAP Server
             //SOAPMessage soapResponse = soapConnection.call(createSOAPRequest(soapAction, strXML, actionName), soapEndpointUrl);
-            //Response for test purposes.
+           // Response for test purposes.
             String send="<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\">\r\n" + 
             		"   <SOAP-ENV:Body>\r\n" + 
             		"      <CreateIncidentResponse message=\"Success\" returnCode=\"0\" schemaRevisionDate=\"2019-10-01\" schemaRevisionLevel=\"1\" status=\"SUCCESS\" xsi:schemaLocation=\"http://schemas.hp.com/SM/7 http://smsvr1-mct-1a.scnrop.gov.om:13080/SM/7/Incident.xsd\" xmlns=\"http://schemas.hp.com/SM/7\" xmlns:cmn=\"http://schemas.hp.com/SM/7/Common\" xmlns:xmime=\"http://www.w3.org/2005/05/xmlmime\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n" + 
@@ -952,15 +955,15 @@ class XMLReader
 		return rs;
     	
     }
-    private static int SaveAlarmState(String query) throws SQLException, ClassNotFoundException
+    private static boolean SaveAlarmState(String query) throws SQLException, ClassNotFoundException
     {
     	Connection con= cpm.getConnectionFromPool();
-    	int result=0;
+    	boolean result=false;
     	try 
     	{
     	//Connection con=GetConnection();
         Statement st = con.createStatement();
-        st.execute(query);
+        result= st.execute(query);
     	//Comment
     	}
     	catch(Exception e)
