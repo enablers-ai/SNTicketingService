@@ -95,6 +95,10 @@ public class Configurations {
 		@SerializedName("DataBasePassword")
 		@Expose
 		private String DataBasePassword;
+		//AssignmentGroupTitle
+		@SerializedName("AssignmentGroupTitle")
+		@Expose
+		private String AssignmentGroupTitle;
 		//WinndowsExceptionsPath
 		public String getWinndowsExceptionsPath() {
 		return winndowsExceptionsPath;
@@ -280,5 +284,13 @@ public class Configurations {
 		}
 		public void setDataBasePassword(String DataBasePassword) {
 		this.DataBasePassword = DataBasePassword;
+		}
+		//AssignmentGroupTitle
+		public String getAssignmentGroupTitle() 
+		{
+		return AssignmentGroupTitle;
+		}
+		public void setAssignmentGroupTitle(String AssignmentGroupTitle) {
+		this.AssignmentGroupTitle = AssignmentGroupTitle;
 		}
 }

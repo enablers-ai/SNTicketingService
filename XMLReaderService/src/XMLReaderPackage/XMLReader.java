@@ -203,6 +203,9 @@ class XMLReader
 			pWriter.print("As on "+dateFormat.format(date));
 			pWriter.println();
 			e.printStackTrace(pWriter);
+			fstream.close();
+			pWriter.close();
+			out.close();
 		}
 		catch (Exception ie) 
 		{
@@ -362,10 +365,10 @@ class XMLReader
 		if(!alarmsList.isEmpty())
 			getQuery= getQuery+" and alarm_id not in(" + alarmsList + ")" ; 
 		res= getAlarmsStateData(getQuery);
-		if(res !=null)
+		if(res !=null && res.next())
 		{
 			String actionName=configPropeties.getSOAPActionNameResolve();
-			while (res.next()) {
+			 do {
 				String resultedMessageAndIncidentId[]=new String[2];
 				long alarmId= res.getLong("alarm_id");
 				String incidentId=res.getString("incident_id");
@@ -381,7 +384,8 @@ class XMLReader
 				else
 					throw new  MicrofocusServerException("Exception occured while accessing microfocus server. Message is "
 				+"" + resultedMessageAndIncidentId[0] +"and Incident Id is "+ IncidentId +" and AlarmId is "+ alarmId);
-			}
+			 }
+			while (res.next());
 		}
 		}
 		catch(Exception ex)
@@ -393,8 +397,9 @@ class XMLReader
 	public static long getNodesData(Node tempNode)//NamedNodeMap nnm)
 	{
 		boolean sendRequest=false;
-		StringBuilder sb = new StringBuilder();
-		String title="";
+		StringBuilder sb=new StringBuilder();
+		StringBuilder descriptinSb = new StringBuilder();
+		String title="", descriptionString="", infoString="", sourceString="", alarmCountString="";
 		String SOAPRes="";
 		NamedNodeMap tempNamedNodeMap=tempNode.getAttributes();
 		title=tempNamedNodeMap.getNamedItem("info").toString();
@@ -451,13 +456,25 @@ class XMLReader
 			{
 				alarmCount=Long.parseLong(node.getNodeValue());
 			}
+			else if(node.getNodeName()=="description")
+			{
+				descriptionString=node.getNodeValue();
+			}
+			else if(node.getNodeName()=="source")
+			{
+				sourceString=node.getNodeValue();
+			}
 			else
 			{
-			sb.append("<ns:Description type=\"String\" >"+node.getNodeValue()+"</ns:Description>\r\n");
+			//sb.append("<ns:Description type=\"String\" >"+node.getNodeValue()+"</ns:Description>\r\n");
 			//sb.append("attr value : " + node.getNodeValue());
 			}
 
 		}
+		descriptinSb.append("Alarm occured on with source " + sourceString +" with Information " + title 
+				+" and description "+ descriptionString);
+		sb.append("<ns:Description type=\"String\" >" + descriptinSb + "</ns:Description>\r\n");
+		
 		sendRequest=true;
 	}
 	
@@ -582,7 +599,7 @@ class XMLReader
 		sb.append("<ns:Area type=\"String\">performance</ns:Area>\r\n");
 		sb.append("<ns:Subarea type=\"String\">performance degradation</ns:Subarea>\r\n");
 		sb.append("<ns:Urgency type=\"String\">"+severityInt+"</ns:Urgency>\r\n ");
-		sb.append("<ns:AssignmentGroup type=\"String\" >ROP HELPDESK</ns:AssignmentGroup>\r\n");
+		sb.append("<ns:AssignmentGroup type=\"String\" >" + configPropeties.getAssignmentGroupTitle() + "</ns:AssignmentGroup>\r\n");
 		sb.append("<ns:Service type=\"String\">CI1001366</ns:Service>\r\n");
 		//sb.append("<ns:Service type=\"String\">CI1001366</ns:Service>\r\n");
 		sb.append("<ns:Impact type=\"String\">1</ns:Impact>\r\n");
