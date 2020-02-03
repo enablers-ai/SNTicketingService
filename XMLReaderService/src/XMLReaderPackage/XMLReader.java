@@ -471,8 +471,8 @@ class XMLReader
 			}
 
 		}
-		descriptinSb.append("Alarm occured on with source " + sourceString +" with Information " + title 
-				+" and description "+ descriptionString);
+		descriptinSb.append("Alarm occured on source: " + sourceString +" with Information " + title 
+				+" and description is: "+ descriptionString);
 		sb.append("<ns:Description type=\"String\" >" + descriptinSb + "</ns:Description>\r\n");
 		
 		sendRequest=true;
