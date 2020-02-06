@@ -421,12 +421,18 @@ class XMLReader
 		String title="", descriptionString="", infoString="", sourceString="", alarmCountString="";
 		String SOAPRes="";
 		NamedNodeMap tempNamedNodeMap=tempNode.getAttributes();
-		title=tempNamedNodeMap.getNamedItem("info").toString();
-		if(title !="")
+		try
 		{
-		title = title.replace("info=", "");
+			title=tempNamedNodeMap.getNamedItem("info").toString();
+		if(!title.equals(""))
+		{
+			title = title.replace("info=", "");
 		}
-		
+		}
+		catch(Exception ex)
+		{
+			appendToFile(ex);
+		}
 		int severityInt=0;
 		long alarmId=0, commitId=0, alarmCount=0;
 		String severity="";
@@ -817,49 +823,49 @@ class XMLReader
             String soapEndpointUrl = configPropeties.getWebServiceInitialLink();
             String soapAction = configPropeties.getfileUploadUrl();//"http://www.webserviceX.NET/GetInfoByCity";
             // Send SOAP Message to SOAP Server
-            SOAPMessage soapResponse = soapConnection.call(createSOAPRequest(soapAction, strXML, actionName), soapEndpointUrl);
+           // SOAPMessage soapResponse = soapConnection.call(createSOAPRequest(soapAction, strXML, actionName), soapEndpointUrl);
            // Response for test purposes.
-//            String send="<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\">\r\n" + 
-//            		"   <SOAP-ENV:Body>\r\n" + 
-//            		"      <CreateIncidentResponse message=\"Success\" returnCode=\"0\" schemaRevisionDate=\"2019-10-01\" schemaRevisionLevel=\"1\" status=\"SUCCESS\" xsi:schemaLocation=\"http://schemas.hp.com/SM/7 http://smsvr1-mct-1a.scnrop.gov.om:13080/SM/7/Incident.xsd\" xmlns=\"http://schemas.hp.com/SM/7\" xmlns:cmn=\"http://schemas.hp.com/SM/7/Common\" xmlns:xmime=\"http://www.w3.org/2005/05/xmlmime\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n" + 
-//            		"         <model>\r\n" + 
-//            		"            <keys>\r\n" + 
-//            		"               <IncidentID type=\"String\">IM575132</IncidentID>\r\n" + 
-//            		"            </keys>\r\n" + 
-//            		"            <instance recordid=\"IM575132 - Stablenet ALARM : Desription\" uniquequery=\"number=&quot;IM575132&quot;\">\r\n" + 
-//            		"               <IncidentID type=\"String\">IM575132</IncidentID>\r\n" + 
-//            		"               <Category type=\"String\">Incident</Category>\r\n" + 
-//            		"               <OpenTime type=\"DateTime\">2019-12-30T10:52:36+00:00</OpenTime>\r\n" + 
-//            		"               <OpenedBy type=\"String\">int-sn</OpenedBy>\r\n" + 
-//            		"               <Urgency type=\"String\">4</Urgency>\r\n" + 
-//            		"               <UpdatedTime type=\"DateTime\">2019-12-30T10:52:36+00:00</UpdatedTime>\r\n" + 
-//            		"               <AssignmentGroup type=\"String\">ROP-ETESALAT-FO</AssignmentGroup>\r\n" + 
-//            		"               <Description type=\"Array\">\r\n" + 
-//            		"                  <Description type=\"String\">text1</Description>\r\n" + 
-//            		"                  <Description type=\"String\">text2</Description>\r\n" + 
-//            		"                  <Description type=\"String\">text3</Description>\r\n" + 
-//            		"               </Description>\r\n" + 
-//            		"               <Title type=\"String\">Stablenet ALARM : Desription</Title>\r\n" + 
-//            		"               <UpdatedBy type=\"String\">int-sn</UpdatedBy>\r\n" + 
-//            		"               <Status type=\"String\">Categorize</Status>\r\n" + 
-//            		"               <Phase type=\"String\">Categorization</Phase>\r\n" + 
-//            		"               <Area type=\"String\">performance</Area>\r\n" + 
-//            		"               <Subarea type=\"String\">performance degradation</Subarea>\r\n" + 
-//            		"               <Impact type=\"String\">1</Impact>\r\n" + 
-//            		"               <Service display=\"Default\" type=\"String\">CI1001366</Service>\r\n" + 
-//            		"               <ExternalID type=\"String\">IM15</ExternalID>\r\n" + 
-//            		"            </instance>\r\n" + 
-//            		"         </model>\r\n" + 
-//            		"         <messages>\r\n" + 
-//            		"            <cmn:message type=\"String\">US/Mountain 12/30/19 03:52:36:  Incident IM575132 has been opened by int-sn</cmn:message>\r\n" + 
-//            		"            <cmn:message type=\"String\">Incident \"IM575132\" added.</cmn:message>\r\n" + 
-//            		"         </messages>\r\n" + 
-//            		"      </CreateIncidentResponse>\r\n" + 
-//            		"   </SOAP-ENV:Body>\r\n" + 
-//            		"</SOAP-ENV:Envelope>\r\n" + 
-//            		"";
-//            InputStream is = new ByteArrayInputStream(send.getBytes());
-//            SOAPMessage soapResponse = MessageFactory.newInstance().createMessage(null, is);
+            String send="<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\">\r\n" + 
+            		"   <SOAP-ENV:Body>\r\n" + 
+            		"      <CreateIncidentResponse message=\"Success\" returnCode=\"0\" schemaRevisionDate=\"2019-10-01\" schemaRevisionLevel=\"1\" status=\"SUCCESS\" xsi:schemaLocation=\"http://schemas.hp.com/SM/7 http://smsvr1-mct-1a.scnrop.gov.om:13080/SM/7/Incident.xsd\" xmlns=\"http://schemas.hp.com/SM/7\" xmlns:cmn=\"http://schemas.hp.com/SM/7/Common\" xmlns:xmime=\"http://www.w3.org/2005/05/xmlmime\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n" + 
+            		"         <model>\r\n" + 
+            		"            <keys>\r\n" + 
+            		"               <IncidentID type=\"String\">IM575132</IncidentID>\r\n" + 
+            		"            </keys>\r\n" + 
+            		"            <instance recordid=\"IM575132 - Stablenet ALARM : Desription\" uniquequery=\"number=&quot;IM575132&quot;\">\r\n" + 
+            		"               <IncidentID type=\"String\">IM575132</IncidentID>\r\n" + 
+            		"               <Category type=\"String\">Incident</Category>\r\n" + 
+            		"               <OpenTime type=\"DateTime\">2019-12-30T10:52:36+00:00</OpenTime>\r\n" + 
+            		"               <OpenedBy type=\"String\">int-sn</OpenedBy>\r\n" + 
+            		"               <Urgency type=\"String\">4</Urgency>\r\n" + 
+            		"               <UpdatedTime type=\"DateTime\">2019-12-30T10:52:36+00:00</UpdatedTime>\r\n" + 
+            		"               <AssignmentGroup type=\"String\">ROP-ETESALAT-FO</AssignmentGroup>\r\n" + 
+            		"               <Description type=\"Array\">\r\n" + 
+            		"                  <Description type=\"String\">text1</Description>\r\n" + 
+            		"                  <Description type=\"String\">text2</Description>\r\n" + 
+            		"                  <Description type=\"String\">text3</Description>\r\n" + 
+            		"               </Description>\r\n" + 
+            		"               <Title type=\"String\">Stablenet ALARM : Desription</Title>\r\n" + 
+            		"               <UpdatedBy type=\"String\">int-sn</UpdatedBy>\r\n" + 
+            		"               <Status type=\"String\">Categorize</Status>\r\n" + 
+            		"               <Phase type=\"String\">Categorization</Phase>\r\n" + 
+            		"               <Area type=\"String\">performance</Area>\r\n" + 
+            		"               <Subarea type=\"String\">performance degradation</Subarea>\r\n" + 
+            		"               <Impact type=\"String\">1</Impact>\r\n" + 
+            		"               <Service display=\"Default\" type=\"String\">CI1001366</Service>\r\n" + 
+            		"               <ExternalID type=\"String\">IM15</ExternalID>\r\n" + 
+            		"            </instance>\r\n" + 
+            		"         </model>\r\n" + 
+            		"         <messages>\r\n" + 
+            		"            <cmn:message type=\"String\">US/Mountain 12/30/19 03:52:36:  Incident IM575132 has been opened by int-sn</cmn:message>\r\n" + 
+            		"            <cmn:message type=\"String\">Incident \"IM575132\" added.</cmn:message>\r\n" + 
+            		"         </messages>\r\n" + 
+            		"      </CreateIncidentResponse>\r\n" + 
+            		"   </SOAP-ENV:Body>\r\n" + 
+            		"</SOAP-ENV:Envelope>\r\n" + 
+            		"";
+            InputStream is = new ByteArrayInputStream(send.getBytes());
+            SOAPMessage soapResponse = MessageFactory.newInstance().createMessage(null, is);
            Document doc= parseSoapResponse(soapResponse);
            if (doc.hasChildNodes()) 
 			{
