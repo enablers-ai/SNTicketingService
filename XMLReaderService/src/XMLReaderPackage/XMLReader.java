@@ -344,8 +344,8 @@ class XMLReader
 //Used to print/write xml data.
 	private static  String printNote(NodeList nodeList) throws IOException, UnsupportedOperationException, SOAPException {
 		String result = "";
-	    
-		for (int count = 0; count < nodeList.getLength(); count++)
+	    int nodeLength=nodeList.getLength();
+		for (int count = 0; count < nodeLength; count++)
 		{
 
 			Node tempNode = nodeList.item(count);
@@ -420,34 +420,38 @@ class XMLReader
 		StringBuilder descriptinSb = new StringBuilder();
 		String title="", descriptionString="", infoString="", sourceString="", alarmCountString="";
 		String SOAPRes="";
-		NamedNodeMap tempNamedNodeMap=tempNode.getAttributes();
-		try
-		{
-			title=tempNamedNodeMap.getNamedItem("info").toString();
-		if(!title.equals(""))
-		{
-			title = title.replace("info=", "");
-		}
-		}
-		catch(Exception ex)
-		{
-			appendToFile(ex);
-		}
+//		NamedNodeMap tempNamedNodeMap=tempNode.getAttributes();
+//		try
+//		{
+//			title=tempNamedNodeMap.getNamedItem("info").toString();
+//		if(!title.equals(""))
+//		{
+//			title = title.replace("info=", "");
+//		}
+//		}
+//		catch(Exception ex)
+//		{
+//			appendToFile(ex);
+//		}
 		int severityInt=0;
 		long alarmId=0, commitId=0, alarmCount=0;
 		String severity="";
 	if (tempNode.hasAttributes())
 	{
-
 		// get attributes names and values
 		NamedNodeMap nodeMap = tempNode.getAttributes();
-		
-
 		for (int i = 0; i < nodeMap.getLength(); i++) 
 		{
 			
 			Node node = nodeMap.item(i);
-			if(node.getNodeName()=="severity")
+			String nodeName= node.getNodeName();
+			String nodeValue=node.getNodeValue();
+			switch(nodeName)
+			{
+			case "info":
+				title=nodeValue;
+				break;
+			case "severity":
 			{
 				severity=node.getNodeValue();
 				if(severity.trim().toLowerCase().equals("marginal") || severity.trim().toLowerCase().equals("minor"))
@@ -468,33 +472,28 @@ class XMLReader
 				  default:
 					  severityInt=4;
 				}
+				break;
 			}
-			else if(node.getNodeName()=="alarmid")
-			{
-				alarmId=Long.parseLong(node.getNodeValue());
-			}
-			else if(node.getNodeName()=="commitid")
-			{
-				commitId=Long.parseLong(node.getNodeValue());
-			}
-			else if(node.getNodeName()=="alarmcount")
-			{
-				alarmCount=Long.parseLong(node.getNodeValue());
-			}
-			else if(node.getNodeName()=="description")
-			{
-				descriptionString=node.getNodeValue();
-			}
-			else if(node.getNodeName()=="source")
-			{
-				sourceString=node.getNodeValue();
-			}
-			else
-			{
+			case "alarmid":
+				alarmId=Long.parseLong(nodeValue);
+				break;
+			case "commitid":
+				commitId=Long.parseLong(nodeValue);
+				break;
+			case "alarmcount":
+				alarmCount=Long.parseLong(nodeValue);
+				break;
+			case "description":
+				descriptionString=nodeValue;
+				break;
+			case "source":
+				sourceString=nodeValue;
+				break;
+			 default:
 			//sb.append("<ns:Description type=\"String\" >"+node.getNodeValue()+"</ns:Description>\r\n");
 			//sb.append("attr value : " + node.getNodeValue());
+				 break;
 			}
-
 		}
 		descriptinSb.append("Alarm occured on source: " + sourceString +" with Information " + title 
 				+" and description is: "+ descriptionString);
