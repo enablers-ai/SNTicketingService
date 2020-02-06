@@ -196,6 +196,9 @@ class XMLReader
 			FileWriter fstream = new FileWriter(file.getPath(), true);
 			BufferedWriter out = new BufferedWriter(fstream);
 			PrintWriter pWriter = new PrintWriter(out, true);
+			try
+			{
+			
 			pWriter.print("*****************--------New exception----------********************");
 			pWriter.println();
 			DateFormat dateFormat = new SimpleDateFormat("dd/MMM/yyyy HH:mm:ss");
@@ -203,14 +206,30 @@ class XMLReader
 			pWriter.print("As on "+dateFormat.format(date));
 			pWriter.println();
 			e.printStackTrace(pWriter);
-			fstream.close();
-			pWriter.close();
-			out.close();
+			}
+			catch(Exception ex)
+			{
+				throw new RuntimeException("Exception occured while trying to write Exception to file", ex);
+			}
+			finally 
+			{
+			    try 
+			    {
+			    	fstream.close();
+					pWriter.close();
+					out.close();
+			    }
+			    catch (IOException ex) 
+			    {
+			    	throw new RuntimeException("unable to close exceptions file, stream or writer.", ex);
+			    }
+			}
 		}
 		catch (Exception ie) 
 		{
 			throw new RuntimeException("Could not write Exception to file", ie);
 		}
+		
 	}
 	// Reads and returns configurations properties.
 	public static Configurations getconfigPropetiess() throws IOException 
