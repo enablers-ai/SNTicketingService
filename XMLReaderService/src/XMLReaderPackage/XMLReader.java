@@ -311,7 +311,8 @@ class XMLReader
 			
 			if (doc.hasChildNodes()) 
 			{
-				String res=	printNote(doc.getChildNodes());
+				Node tempNode=doc.getChildNodes().item(0);
+				String res=	printNote(tempNode.getChildNodes());
 				sb.append(res);
 				//CLoseALarmsTicketsMethod
 				closeAlarmsTickets(allAlarmIds.toString());
@@ -344,8 +345,9 @@ class XMLReader
 //Used to print/write xml data.
 	private static  String printNote(NodeList nodeList) throws IOException, UnsupportedOperationException, SOAPException {
 		String result = "";
+		
 	    int nodeLength=nodeList.getLength();
-		for (int count = 0; count < nodeLength; count++)
+		for (int count = 0; count < nodeList.getLength(); count++)
 		{
 
 			Node tempNode = nodeList.item(count);
@@ -353,22 +355,29 @@ class XMLReader
 			if (tempNode.getNodeType() == Node.ELEMENT_NODE) 
 			{
 				String nodeName=tempNode.getNodeName();
-				if(nodeName=="rootcause")
+				if(nodeName=="openalarm")
 				{
-					long resultAlarmId=getNodesData(tempNode);
-					if(resultAlarmId !=0)
+					Node tempRootCauseNode = tempNode.getFirstChild();
+					String nodeNameChild=tempRootCauseNode.getNodeName();
+					if(nodeNameChild=="rootcause")
 					{
-						if(allAlarmIds == null || allAlarmIds.toString().equals(""))
-						allAlarmIds.append(resultAlarmId);
-						else
-							allAlarmIds.append(", " + resultAlarmId);
-					}
+						long resultAlarmId=getNodesData(tempRootCauseNode);
+						if(resultAlarmId !=0)
+						{
+							if(allAlarmIds == null || allAlarmIds.toString().equals(""))
+							allAlarmIds.append(resultAlarmId);
+							else
+								allAlarmIds.append(", " + resultAlarmId);
+						}
+					 }
 				}
-				if (tempNode.hasChildNodes()) 
-				{
-					// loop again if has child nodes
-					result=printNote(tempNode.getChildNodes());
-				}
+//				else if (nodeName == "openalarm" && tempNode.hasChildNodes()) 
+//				{
+//					// loop again if has child nodes
+//					//result=printNote(tempNode.getChildNodes());
+//				}
+				else
+					continue;
 				}
 
 		}
@@ -822,7 +831,7 @@ class XMLReader
             String soapEndpointUrl = configPropeties.getWebServiceInitialLink();
             String soapAction = configPropeties.getfileUploadUrl();//"http://www.webserviceX.NET/GetInfoByCity";
             // Send SOAP Message to SOAP Server
-           // SOAPMessage soapResponse = soapConnection.call(createSOAPRequest(soapAction, strXML, actionName), soapEndpointUrl);
+            //SOAPMessage soapResponse = soapConnection.call(createSOAPRequest(soapAction, strXML, actionName), soapEndpointUrl);
            // Response for test purposes.
             String send="<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\">\r\n" + 
             		"   <SOAP-ENV:Body>\r\n" + 
