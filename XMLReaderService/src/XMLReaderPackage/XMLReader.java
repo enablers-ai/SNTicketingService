@@ -354,12 +354,12 @@ class XMLReader
 			// make sure it's element node.
 			if (tempNode.getNodeType() == Node.ELEMENT_NODE) 
 			{
-				String nodeName=tempNode.getNodeName();
-				if(nodeName=="openalarm")
+				String nodeName=tempNode.getNodeName().trim();
+				if(nodeName.equals("openalarm"))
 				{
 					Node tempRootCauseNode = tempNode.getFirstChild();
 					String nodeNameChild=tempRootCauseNode.getNodeName();
-					if(nodeNameChild=="rootcause")
+					if(nodeNameChild.equals("rootcause"))
 					{
 						long resultAlarmId=getNodesData(tempRootCauseNode);
 						if(resultAlarmId !=0)
@@ -520,14 +520,16 @@ class XMLReader
 			String query="";
 			String actionName="";
 			int count= 0;
-			String severityDB="";
+			String severityDB="", actionExecuted="";;
 			res =getAlarmsStateData(getQuery);
 			if(res !=null && res.next())
 			{
 				count= res.getInt("alarm_count");
 				severityDB=res.getString("alarm_severity");
+				actionExecuted=res.getString("action_executed");
 				//if(count<alarmCount || severityDB !=severity)
-				if(count==alarmCount && severityDB.toLowerCase().trim().equals(severity.toLowerCase().trim()))
+				if(count==alarmCount && severityDB.toLowerCase().trim().equals(severity.toLowerCase().trim())
+						&& !actionExecuted.equals("closed"))
 				{
 					sendRequest=false;
 					//do nothing so for.
@@ -831,7 +833,7 @@ class XMLReader
             String soapEndpointUrl = configPropeties.getWebServiceInitialLink();
             String soapAction = configPropeties.getfileUploadUrl();//"http://www.webserviceX.NET/GetInfoByCity";
             // Send SOAP Message to SOAP Server
-            //SOAPMessage soapResponse = soapConnection.call(createSOAPRequest(soapAction, strXML, actionName), soapEndpointUrl);
+           // SOAPMessage soapResponse = soapConnection.call(createSOAPRequest(soapAction, strXML, actionName), soapEndpointUrl);
            // Response for test purposes.
             String send="<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\">\r\n" + 
             		"   <SOAP-ENV:Body>\r\n" + 
