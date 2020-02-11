@@ -134,8 +134,8 @@ class XMLReader
 					try 
 					{
 					allAlarmIds = new StringBuilder();
-					String result= executePost(serverCompleteUrl,"");
-					ParseXML(result);
+					String restResult= executePost(serverCompleteUrl,"");
+					ParseXML(restResult);
 					//String APIResults= UploadFileAPI();
 					//System.out.println(APIResults);
 					}
@@ -279,9 +279,9 @@ class XMLReader
 	}
 
 	//Parsing XML File.
-	public static void ParseXML(String soapResult)
+	public static void ParseXML(String restResult)
 	{
-		final Object lock = new Object();
+		//final Object lock = new Object();
 		try 
 		{
 //			File file=null;
@@ -306,7 +306,7 @@ class XMLReader
 			DocumentBuilder dBuilder = DocumentBuilderFactory.newInstance()
 					.newDocumentBuilder();
 			InputSource iss = new InputSource();
-			iss.setCharacterStream(new StringReader(soapResult));
+			iss.setCharacterStream(new StringReader(restResult));
 			
 			//Document doc = dBuilder.parse(file);
 			Document doc = dBuilder.parse(iss);;
@@ -766,11 +766,9 @@ class XMLReader
 
 			URL url = new URL(targetURL);
 			String userCredentials = configPropeties.getSNUserName()+":"+configPropeties.getSNPassword();
-			//String userCredentials = "infosim:stablenet";
 			String basicAuth = "Basic " + new String(Base64.getEncoder().encode(userCredentials.getBytes()));
 			HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
 			connection = (HttpURLConnection) url.openConnection();
-
 			connection.setRequestProperty ("Authorization", basicAuth);
 			connection.setRequestMethod("GET");
 			//Get Response  
@@ -779,6 +777,9 @@ class XMLReader
 			writer = Files.newBufferedWriter(dst, StandardCharsets.UTF_8);
 			StringBuilder response = new StringBuilder(); // or StringBuffer if Java version 5+
 			String line;
+			
+			//TODO: Remove file writing code for production. This is just for test purposes.
+			
 			while ((line = rd.readLine()) != null) {
 				response.append(line);
 				byte[] contentInBytes = line.getBytes();
