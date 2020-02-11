@@ -134,8 +134,8 @@ class XMLReader
 					try 
 					{
 					allAlarmIds = new StringBuilder();
-					executePost(serverCompleteUrl,"");
-					ParseXML();
+					String result= executePost(serverCompleteUrl,"");
+					ParseXML(result);
 					//String APIResults= UploadFileAPI();
 					//System.out.println(APIResults);
 					}
@@ -279,41 +279,41 @@ class XMLReader
 	}
 
 	//Parsing XML File.
-	public static void ParseXML()
+	public static void ParseXML(String soapResult)
 	{
 		final Object lock = new Object();
 		try 
 		{
-			File file=null;
-			synchronized(lock)
-			{
-
-				try 
-				{
-					if (OSName.indexOf("win") >= 0)
-					{
-						file= new File(configPropeties.getlocalXMLPathWindows());
-					} else 
-					{
-						file = new File(configPropeties.getlocalXMLPathLinux());
-					}
-				}
-				catch (Exception e) 
-				{
-					appendToFile(e);
-				}
-			}
+//			File file=null;
+//			synchronized(lock)
+//			{
+//
+//				try 
+//				{
+//					if (OSName.indexOf("win") >= 0)
+//					{
+//						file= new File(configPropeties.getlocalXMLPathWindows());
+//					} else 
+//					{
+//						file = new File(configPropeties.getlocalXMLPathLinux());
+//					}
+//				}
+//				catch (Exception e) 
+//				{
+//					appendToFile(e);
+//				}
+//			}
 			DocumentBuilder dBuilder = DocumentBuilderFactory.newInstance()
 					.newDocumentBuilder();
-
-			Document doc = dBuilder.parse(file);
-			StringBuilder sb = new StringBuilder();
+			InputSource iss = new InputSource();
+			iss.setCharacterStream(new StringReader(soapResult));
 			
+			//Document doc = dBuilder.parse(file);
+			Document doc = dBuilder.parse(iss);;
 			if (doc.hasChildNodes()) 
 			{
 				Node tempNode=doc.getChildNodes().item(0);
 				String res=	printNote(tempNode.getChildNodes());
-				sb.append(res);
 				//CLoseALarmsTicketsMethod
 				closeAlarmsTickets(allAlarmIds.toString());
 			}
@@ -346,7 +346,7 @@ class XMLReader
 	private static  String printNote(NodeList nodeList) throws IOException, UnsupportedOperationException, SOAPException {
 		String result = "";
 		
-	    int nodeLength=nodeList.getLength();
+	    //int nodeLength=nodeList.getLength();
 		for (int count = 0; count < nodeList.getLength(); count++)
 		{
 
@@ -803,6 +803,7 @@ class XMLReader
 				response.append('\r');
 			}
 			rd.close();
+			//return is;
 			return response.toString();
 		} 
 		catch (Exception e)
