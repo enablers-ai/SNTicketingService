@@ -3,97 +3,56 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.io.Writer;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.cert.X509Certificate;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
-import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
-import javax.jnlp.UnavailableServiceException;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-import javax.print.attribute.standard.DateTimeAtCompleted;
 import javax.xml.bind.DatatypeConverter;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.soap.MessageFactory;
 import javax.xml.soap.MimeHeaders;
-import javax.xml.soap.SOAPBody;
 import javax.xml.soap.SOAPConnection;
 import javax.xml.soap.SOAPConnectionFactory;
-import javax.xml.soap.SOAPElement;
-import javax.xml.soap.SOAPEnvelope;
 import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
-import javax.xml.soap.SOAPPart;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.output.StringBuilderWriter;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.mime.MultipartEntity;
-import org.apache.http.entity.mime.content.InputStreamBody;
-import org.apache.http.entity.mime.content.StringBody;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.util.EntityUtils;
 import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-
-import com.google.gson.Gson;
-import com.sun.xml.internal.ws.wsdl.parser.InaccessibleWSDLException;
-
-import java.io.InputStream;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+
+import com.google.gson.Gson;
 class XMLReader 
 {
 
@@ -134,8 +93,8 @@ class XMLReader
 					try 
 					{
 					allAlarmIds = new StringBuilder();
-					String restResult= executePost(serverCompleteUrl,"");
-					ParseXML(restResult);
+					String restResult= executeRestAPI(serverCompleteUrl,"");
+					ParseRestXML(restResult);
 					//String APIResults= UploadFileAPI();
 					//System.out.println(APIResults);
 					}
@@ -279,7 +238,7 @@ class XMLReader
 	}
 
 	//Parsing XML File.
-	public static void ParseXML(String restResult)
+	public static void ParseRestXML(String restResult)
 	{
 		//final Object lock = new Object();
 		try 
@@ -309,11 +268,11 @@ class XMLReader
 			iss.setCharacterStream(new StringReader(restResult));
 			
 			//Document doc = dBuilder.parse(file);
-			Document doc = dBuilder.parse(iss);;
+			Document doc = dBuilder.parse(iss);
 			if (doc.hasChildNodes()) 
 			{
 				Node tempNode=doc.getChildNodes().item(0);
-				String res=	printNote(tempNode.getChildNodes());
+				String res=	parseChildNodesAndManageTickets(tempNode.getChildNodes());
 				//CLoseALarmsTicketsMethod
 				closeAlarmsTickets(allAlarmIds.toString());
 			}
@@ -335,7 +294,8 @@ class XMLReader
 //			{
 //				writer.write(sb.toString());
 //			}
-		} catch (Exception e) 
+		}
+		catch (Exception e) 
 		{
 			appendToFile(e);
 		}
@@ -343,10 +303,11 @@ class XMLReader
 	}
 	//Comment Test
 //Used to print/write xml data.
-	private static  String printNote(NodeList nodeList) throws IOException, UnsupportedOperationException, SOAPException {
+	private static  String parseChildNodesAndManageTickets(NodeList nodeList) throws IOException, UnsupportedOperationException, SOAPException
+	{
+		
 		String result = "";
 		
-	    //int nodeLength=nodeList.getLength();
 		for (int count = 0; count < nodeList.getLength(); count++)
 		{
 
@@ -361,7 +322,7 @@ class XMLReader
 					String nodeNameChild=tempRootCauseNode.getNodeName();
 					if(nodeNameChild.equals("rootcause"))
 					{
-						long resultAlarmId=getNodesData(tempRootCauseNode);
+						long resultAlarmId=manageChildNodeTickets(tempRootCauseNode);
 						if(resultAlarmId !=0)
 						{
 							if(allAlarmIds == null || allAlarmIds.toString().equals(""))
@@ -371,11 +332,6 @@ class XMLReader
 						}
 					 }
 				}
-//				else if (nodeName == "openalarm" && tempNode.hasChildNodes()) 
-//				{
-//					// loop again if has child nodes
-//					//result=printNote(tempNode.getChildNodes());
-//				}
 				else
 					continue;
 				}
@@ -422,26 +378,13 @@ class XMLReader
 		}
 	}
 	//To format XML Nodes data according to required SOAP Format.
-	public static long getNodesData(Node tempNode)//NamedNodeMap nnm)
+	public static long manageChildNodeTickets(Node tempNode)//NamedNodeMap nnm)
 	{
 		boolean sendRequest=false;
 		StringBuilder sb=new StringBuilder();
 		StringBuilder descriptinSb = new StringBuilder();
 		String title="", descriptionString="", infoString="", sourceString="", alarmCountString="";
 		String SOAPRes="";
-//		NamedNodeMap tempNamedNodeMap=tempNode.getAttributes();
-//		try
-//		{
-//			title=tempNamedNodeMap.getNamedItem("info").toString();
-//		if(!title.equals(""))
-//		{
-//			title = title.replace("info=", "");
-//		}
-//		}
-//		catch(Exception ex)
-//		{
-//			appendToFile(ex);
-//		}
 		int severityInt=0;
 		long alarmId=0, commitId=0, alarmCount=0;
 		String severity="";
@@ -719,7 +662,7 @@ class XMLReader
 	 }
 	
 	// Calling stableNet's server API for provided url and parameters for that URL.
-	public static String executePost(String targetURL, String urlParameters) {
+	public static String executeRestAPI(String targetURL, String urlParameters) {
 		//final Object lock = new Object();  
 		HttpURLConnection connection = null;
 		//String path=null;
@@ -771,9 +714,11 @@ class XMLReader
 			connection = (HttpURLConnection) url.openConnection();
 			connection.setRequestProperty ("Authorization", basicAuth);
 			connection.setRequestMethod("GET");
+			//int status = connection.getResponseCode();
 			//Get Response  
 			InputStream is = connection.getInputStream();
 			BufferedReader rd = new BufferedReader(new InputStreamReader(is));
+			
 			//writer = Files.newBufferedWriter(dst, StandardCharsets.UTF_8);
 			StringBuilder response = new StringBuilder(); // or StringBuffer if Java version 5+
 			String line;

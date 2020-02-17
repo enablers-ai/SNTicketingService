@@ -8,7 +8,7 @@ public class ConnectionPoolManager
 	 String userName = "";//root
 	 String password = "";//abc123
 
-	 Vector connectionPool = new Vector();
+	 Vector<Connection> connectionPool = new Vector<Connection>();
 
 	 public ConnectionPoolManager(){
 	  initialize();
@@ -49,7 +49,7 @@ public class ConnectionPoolManager
 	  final int MAX_POOL_SIZE = 5;
 
 	  //Check if the pool size
-	  if(connectionPool.size() < 5)
+	  if(connectionPool.size() < MAX_POOL_SIZE)
 	  {
 	   return false;
 	  }
@@ -102,10 +102,10 @@ public class ConnectionPoolManager
 	  connectionPool.addElement(connection);
 	 }
 
-	 public static void main(String args[])
-	 {
-	  ConnectionPoolManager ConnectionPoolManager = new ConnectionPoolManager();
-	 }
+//	 public static void main(String args[])
+//	 {
+//	  ConnectionPoolManager ConnectionPoolManager = new ConnectionPoolManager();
+//	 }
 	 
 
 }
