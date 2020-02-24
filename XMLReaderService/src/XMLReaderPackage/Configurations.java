@@ -27,6 +27,10 @@ public class Configurations {
 		@SerializedName("alarmsActionUrl")
 		@Expose
 		private String alarmsActionUrl;
+		//alarmUpdateUrl
+		@SerializedName("alarmUpdateUrl")
+		@Expose
+		private String alarmUpdateUrl;
 		//localXMLPathLinux
 		@SerializedName("localXMLPathLinux")
 		@Expose
@@ -129,6 +133,14 @@ public class Configurations {
 
 		public void setAlarmsActionUrl(String alarmsActionUrl) {
 		this.alarmsActionUrl = alarmsActionUrl;
+		}
+		//alarmUpdateUrl
+		public String getAlarmUpdateUrl() {
+		return alarmUpdateUrl;
+		}
+
+		public void setAlarmUpdateUrl(String alarmUpdateUrl) {
+		this.alarmUpdateUrl = alarmUpdateUrl;
 		}
 		//localXMLPathWindows
 		public String getlocalXMLPathWindows() {

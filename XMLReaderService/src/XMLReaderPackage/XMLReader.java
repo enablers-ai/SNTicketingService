@@ -530,6 +530,8 @@ class XMLReader
 				try 
 				{
 					SaveAlarmState(query);
+					//TODO : Update alarm Ticket status and Ticket number.
+					String snAlarmUpdate= UpdateTicketDetails(alarmId, IncidentId);
 				} 
 				catch (ClassNotFoundException e) 
 				{
@@ -553,6 +555,93 @@ class XMLReader
 			appendToFile(e);
 		}
 		return alarmId;
+	}
+	private static String UpdateTicketDetails(long alarmId, String ticketId)
+	{
+		HttpURLConnection connection = null;
+		String updateResult="";
+		try {
+			// Create a trust manager that does not validate certificate chains
+			TrustManager[] trustAllCerts = new TrustManager[] {new X509TrustManager()
+			{
+				public java.security.cert.X509Certificate[] getAcceptedIssuers() 
+				{
+					return null;
+				}
+				public void checkClientTrusted(X509Certificate[] certs, String authType)
+				{
+				}
+				public void checkServerTrusted(X509Certificate[] certs, String authType)
+				{
+				}
+			}
+			};
+
+			// Install the all-trusting trust manager
+			SSLContext sc = SSLContext.getInstance("SSL");
+			sc.init(null, trustAllCerts, new java.security.SecureRandom());
+			HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+			// Create all-trusting host name verifier
+			HostnameVerifier allHostsValid = new HostnameVerifier()
+			{
+				public boolean verify(String hostname, SSLSession session) 
+				{
+					return true;
+				}
+			};
+			String targetURLUpdate=configPropeties.getServerAPIUrl()+configPropeties.getAlarmUpdateUrl();
+			targetURLUpdate=targetURLUpdate+"/"+alarmId+"?ticketstatus=Success&ticketnumber="+ticketId;
+			URL url = new URL(targetURLUpdate);
+			String userCredentials = configPropeties.getSNUserName()+":"+configPropeties.getSNPassword();
+			String basicAuth = "Basic " + new String(Base64.getEncoder().encode(userCredentials.getBytes()));
+			HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+			connection = (HttpURLConnection) url.openConnection();
+			connection.setRequestProperty ("Authorization", basicAuth);
+			connection.setRequestMethod("GET");
+			//int status = connection.getResponseCode();
+			//Get Response  
+			InputStream is = connection.getInputStream();
+			BufferedReader rd = new BufferedReader(new InputStreamReader(is));
+			
+			//writer = Files.newBufferedWriter(dst, StandardCharsets.UTF_8);
+			StringBuilder response = new StringBuilder(); // or StringBuffer if Java version 5+
+			String line;
+			
+			//TODO: Remove file writing code for production. This is just for test purposes.
+			
+			while ((line = rd.readLine()) != null) {
+				response.append(line);
+				//byte[] contentInBytes = line.getBytes();
+				//File file = new File(path);
+				//FileOutputStream fop =null;
+				// If file doesn't exists, then create it
+//				if (!file.exists())
+//				{
+//					file.createNewFile();
+//				}
+//				synchronized(lock)
+//				{
+//					fop = new FileOutputStream(file);
+//					fop.write(contentInBytes);
+//				}
+				//fop.flush();
+				//fop.close();
+
+				//writer.write(contentInBytes);
+				// must do this: .readLine() will have stripped line endings
+				//writer.newLine();
+				response.append('\r');
+			}
+			rd.close();
+			is.close();
+			//return is;
+			return response.toString();
+
+		}
+		catch (Exception e) {
+			appendToFile(e);
+		}
+		return updateResult;
 	}
 	//Method to get SOAP response to create new ticket.
 	private static String getCreateTicketSoap(String title, String descriptionString, int severityInt, long alarmId)
@@ -660,7 +749,6 @@ class XMLReader
 			return currentTime;
 		 
 	 }
-	
 	// Calling stableNet's server API for provided url and parameters for that URL.
 	public static String executeRestAPI(String targetURL, String urlParameters) {
 		//final Object lock = new Object();  
