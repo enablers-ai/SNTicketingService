@@ -177,11 +177,12 @@ class XMLReader
 			{
 				file.createNewFile();
 			}
-			BufferedWriter writer = null;
+			FileWriter writer = null;
 			try {
-			    writer = new BufferedWriter(new FileWriter(file));
-			    writer.append(allExceptions);
-			    //writer.write(allExceptions);
+				//FileWriter fstream = new FileWriter(file.getPath(), true);
+			    writer = new FileWriter(file.getPath(), true);
+			    //writer.append(allExceptions);
+			    writer.write(allExceptions.toString());
 			} 
 			catch(Exception ex)
 			{
