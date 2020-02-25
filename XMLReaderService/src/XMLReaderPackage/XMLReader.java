@@ -60,6 +60,7 @@ class XMLReader
 	static Configurations configPropeties = new Configurations();
 	static ConnectionPoolManager cpm=null;//new ConnectionPoolManager();
 	static StringBuilder allAlarmIds = null;
+	static StringBuilder allExceptions=null;
 	//Main Method 
 	//Calling getconfigPropetiess method
 	//Calling startPollingTimer
@@ -93,14 +94,21 @@ class XMLReader
 					try 
 					{
 					allAlarmIds = new StringBuilder();
+					allExceptions= new StringBuilder();
 					String restResult= executeRestAPI(serverCompleteUrl,"");
 					ParseRestXML(restResult);
+					
 					//String APIResults= UploadFileAPI();
 					//System.out.println(APIResults);
 					}
 					catch(Exception ex)
 					{
-						appendToFile(ex);
+						prepareExceptionFormat(ex);
+					}
+					finally
+					{
+						if(allExceptions !=null)
+						appendToFile(allExceptions);
 					}
 					//try 
 					//{
@@ -134,8 +142,26 @@ class XMLReader
 	{
 		stopPollingTimer();
 	}
+	public static void prepareExceptionFormat(Exception e) 
+	{
+		StringWriter sw = new StringWriter();
+		PrintWriter pw = new PrintWriter(sw);
+		e.printStackTrace(pw);
+		String sStackTrace = sw.toString();
+		StringBuilder sb=new StringBuilder();
+		sb.append("*****************--------New exception----------********************");
+		sb.append(System.getProperty("line.separator"));
+		DateFormat dateFormat = new SimpleDateFormat("dd/MMM/yyyy HH:mm:ss");
+		Date date = new Date();
+		sb.append("As on "+dateFormat.format(date));
+		sb.append(System.getProperty("line.separator"));
+		sb.append(sStackTrace);
+		sb.append(System.getProperty("line.separator"));
+		//System.out.println(sb.toString());
+		allExceptions.append(sb.toString());
+	}
 	//Exception write to file method.
-	public static void appendToFile(Exception e) 
+	public static void appendToFile(StringBuilder allExceptions) 
 	{
 		try {
 			File file;
@@ -151,38 +177,30 @@ class XMLReader
 			{
 				file.createNewFile();
 			}
-			//fw = new FileWriter ("exception.txt", true);
-			FileWriter fstream = new FileWriter(file.getPath(), true);
-			BufferedWriter out = new BufferedWriter(fstream);
-			PrintWriter pWriter = new PrintWriter(out, true);
-			try
-			{
-			
-			pWriter.print("*****************--------New exception----------********************");
-			pWriter.println();
-			DateFormat dateFormat = new SimpleDateFormat("dd/MMM/yyyy HH:mm:ss");
-			Date date = new Date();
-			pWriter.print("As on "+dateFormat.format(date));
-			pWriter.println();
-			e.printStackTrace(pWriter);
-			}
+			BufferedWriter writer = null;
+			try {
+			    writer = new BufferedWriter(new FileWriter(file));
+			    writer.append(allExceptions);
+			    //writer.write(allExceptions);
+			} 
 			catch(Exception ex)
 			{
 				throw new RuntimeException("Exception occured while trying to write Exception to file", ex);
 			}
-			finally 
+			finally
 			{
+			    if (writer != null) writer.close();
 			    try 
 			    {
-			    	fstream.close();
-					pWriter.close();
-					out.close();
+			    	writer.close();
 			    }
 			    catch (IOException ex) 
 			    {
 			    	throw new RuntimeException("unable to close exceptions file, stream or writer.", ex);
 			    }
 			}
+			//fw = new FileWriter ("exception.txt", true);
+			
 		}
 		catch (Exception ie) 
 		{
@@ -218,8 +236,8 @@ class XMLReader
 		} 
 		catch (IOException ex)
 		{
-			appendToFile(ex);
-			ex.printStackTrace();
+			prepareExceptionFormat(ex);
+			//ex.printStackTrace();
 		} 
 		finally 
 		{
@@ -297,7 +315,7 @@ class XMLReader
 		}
 		catch (Exception e) 
 		{
-			appendToFile(e);
+			prepareExceptionFormat(e);
 		}
 
 	}
@@ -374,7 +392,7 @@ class XMLReader
 		}
 		catch(Exception ex)
 		{
-			appendToFile(ex);
+			prepareExceptionFormat(ex);
 		}
 	}
 	//To format XML Nodes data according to required SOAP Format.
@@ -490,7 +508,7 @@ class XMLReader
 					}
 					catch(Exception ex)
 					{
-						appendToFile(ex);
+						prepareExceptionFormat(ex);
 					}
 					if(resultedMessageAndIncidentId[0].equals("Success"))
 					{
@@ -504,7 +522,7 @@ class XMLReader
 					} 
 					catch (ClassNotFoundException e) 
 					{
-						appendToFile(e);
+						prepareExceptionFormat(e);
 					} 
 					}
 				}
@@ -535,11 +553,11 @@ class XMLReader
 				} 
 				catch (ClassNotFoundException e) 
 				{
-					appendToFile(e);
+					prepareExceptionFormat(e);
 				} 
 				catch (SQLException e) 
 				{
-					appendToFile(e);
+					prepareExceptionFormat(e);
 				}
 				}
 				else if(IncidentId == null || IncidentId.isEmpty())
@@ -552,11 +570,11 @@ class XMLReader
 		} 
 		catch (Exception e)
 		{
-			appendToFile(e);
+			prepareExceptionFormat(e);
 		}
 		return alarmId;
 	}
-	private static String UpdateTicketDetails(long alarmId, String ticketId)
+	private static String UpdateTicketDetails(long alarmId, String incidentId)
 	{
 		HttpURLConnection connection = null;
 		String updateResult="";
@@ -590,7 +608,7 @@ class XMLReader
 				}
 			};
 			String targetURLUpdate=configPropeties.getServerAPIUrl()+configPropeties.getAlarmUpdateUrl();
-			targetURLUpdate=targetURLUpdate+"/"+alarmId+"?ticketstatus=Success&ticketnumber="+ticketId;
+			targetURLUpdate=targetURLUpdate+"/"+alarmId+"?ticketstatus=Success&ticketnumber="+incidentId;
 			URL url = new URL(targetURLUpdate);
 			String userCredentials = configPropeties.getSNUserName()+":"+configPropeties.getSNPassword();
 			String basicAuth = "Basic " + new String(Base64.getEncoder().encode(userCredentials.getBytes()));
@@ -639,7 +657,7 @@ class XMLReader
 
 		}
 		catch (Exception e) {
-			appendToFile(e);
+			prepareExceptionFormat(e);
 		}
 		return updateResult;
 	}
@@ -843,7 +861,7 @@ class XMLReader
 		} 
 		catch (Exception e)
 		{
-			appendToFile(e);
+			prepareExceptionFormat(e);
 			//e.printStackTrace();
 			return null;
 		} 
@@ -930,9 +948,9 @@ class XMLReader
          }
         catch (Exception e)
         {
-            System.err.println("\nError occurred while sending SOAP Request to Server!\nMake sure you have the correct endpoint URL and SOAPAction!\n");
-            e.printStackTrace();
-            appendToFile(e);
+            //System.err.println("\nError occurred while sending SOAP Request to Server!\nMake sure you have the correct endpoint URL and SOAPAction!\n");
+           // e.printStackTrace();
+            prepareExceptionFormat(e);
         }
        return resultedMessageAndIncidentId;
     }
@@ -980,7 +998,7 @@ class XMLReader
     	catch(Exception e)
     	{
     		ids=null;
-    		appendToFile(e);
+    		prepareExceptionFormat(e);
     	}
         return ids;
     }
@@ -1021,7 +1039,7 @@ class XMLReader
     	}
     	catch(Exception ex)
     	{
-    		appendToFile(ex);
+    		prepareExceptionFormat(ex);
     		return null;
     	}
     }
@@ -1039,8 +1057,8 @@ class XMLReader
 		catch (SQLException e)
 		{
 			rs=null;
-			e.printStackTrace();
-			appendToFile(e);
+			//e.printStackTrace();
+			prepareExceptionFormat(e);
 		}
 		finally
 		{
@@ -1062,7 +1080,7 @@ class XMLReader
     	}
     	catch(Exception e)
     	{
-    		appendToFile(e);
+    		prepareExceptionFormat(e);
     	}
     	finally
     	{
@@ -1156,7 +1174,7 @@ class XMLReader
 			}
 			catch(Exception ex)
 			{
-				appendToFile(ex);
+				prepareExceptionFormat(ex);
 			}
 		}
 	return IncidentID;
