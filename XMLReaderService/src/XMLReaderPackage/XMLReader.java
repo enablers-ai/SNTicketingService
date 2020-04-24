@@ -223,7 +223,7 @@ class XMLReader
 			}
 			else
 			{
-				input = new FileInputStream("/root/Documents/configurations.properties");
+				input = new FileInputStream("/root/configurations.properties");
 				//UTF_Encoding="ISO-8859-1";
 			}
 			StringWriter writer = new StringWriter();
@@ -420,7 +420,8 @@ class XMLReader
 			switch(nodeName)
 			{
 			case "info":
-				title=nodeValue;
+				if(!nodeValue.toLowerCase().equalsIgnoreCase(""))
+				title=" with Information " +nodeValue;
 				break;
 			case "severity":
 			{
@@ -455,10 +456,12 @@ class XMLReader
 				alarmCount=Long.parseLong(nodeValue);
 				break;
 			case "description":
-				descriptionString=nodeValue;
+				if(!nodeValue.toLowerCase().equalsIgnoreCase(""))
+					descriptionString=" and description is: "+ nodeValue;
 				break;
 			case "source":
-				sourceString=nodeValue;
+				if(!nodeValue.toLowerCase().equalsIgnoreCase(""))
+				sourceString="Alarm occured on source: " +nodeValue;
 				break;
 			 default:
 			//sb.append("<ns:Description type=\"String\" >"+node.getNodeValue()+"</ns:Description>\r\n");
@@ -466,8 +469,7 @@ class XMLReader
 				 break;
 			}
 		}
-		descriptinSb.append("Alarm occured on source: " + sourceString +" with Information " + title 
-				+" and description is: "+ descriptionString);
+		descriptinSb.append(sourceString + title + descriptionString);
 		sb.append("<ns:Description type=\"String\" >" + descriptinSb + "</ns:Description>\r\n");
 		
 		sendRequest=true;
@@ -609,7 +611,8 @@ class XMLReader
 				}
 			};
 			String targetURLUpdate=configPropeties.getServerAPIUrl()+configPropeties.getAlarmUpdateUrl();
-			targetURLUpdate=targetURLUpdate+"/"+alarmId+"?ticketstatus=Success&ticketnumber="+incidentId;
+			String ticketOpenMessage="Ticket%20Opened%20Successfully.";
+			targetURLUpdate=targetURLUpdate+"/"+alarmId+"?ticketstatus=" + ticketOpenMessage + "&ticketnumber="+incidentId;
 			URL url = new URL(targetURLUpdate);
 			String userCredentials = configPropeties.getSNUserName()+":"+configPropeties.getSNPassword();
 			String basicAuth = "Basic " + new String(Base64.getEncoder().encode(userCredentials.getBytes()));
