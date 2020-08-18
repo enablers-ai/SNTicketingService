@@ -23,6 +23,7 @@ import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
@@ -52,6 +53,11 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
+//import java.util.Iterator;  
+//import org.apache.poi.ss.usermodel.Cell;  
+//import org.apache.poi.ss.usermodel.Row;  
+//import org.apache.poi.xssf.usermodel.XSSFSheet;  
+//import org.apache.poi.xssf.usermodel.XSSFWorkbook;  
 import com.google.gson.Gson;
 class XMLReader 
 {
@@ -61,6 +67,7 @@ class XMLReader
 	static ConnectionPoolManager cpm=null;//new ConnectionPoolManager();
 	static StringBuilder allAlarmIds = null;
 	static StringBuilder allExceptions=null;
+	static String getSeveritiesToSkip[]=null;
 	//Main Method 
 	//Calling getconfigPropetiess method
 	//Calling startPollingTimer
@@ -73,6 +80,8 @@ class XMLReader
 		cpm=new ConnectionPoolManager("jdbc:mysql://"+configPropeties.getDataBaseURL(),
 				configPropeties.getDataBaseUserName(), configPropeties.getDataBasePassword());
 		String serverCompleteUrl= configPropeties.getServerAPIUrl()+configPropeties.getAlarmsActionUrl();
+		getSeveritiesToSkip= configPropeties.getSeveritiesToSkip().split(",");
+		//ReadAndPutData();
 		//ParseXML();
 		//executePost(serverCompleteUrl,"");
 		//String ApiResult= UploadFileAPI();
@@ -80,6 +89,93 @@ class XMLReader
 	}
 	// static timer's variable.
 	public static Timer t;
+	
+//	public static String ReadAndPutData()
+//	{
+//		try  
+//		{  
+//			boolean skipInsert=true;
+//		File file = new File("D:\\Excel_Sheet\\CI_SN_Device_Data.xlsx");   //creating a new file instance  
+//		FileInputStream fis = new FileInputStream(file);   //obtaining bytes from the file  
+//		//creating Workbook instance that refers to .xlsx file 
+//		XSSFSheet sheet=null;
+//		try
+//		{
+//		XSSFWorkbook wb = new XSSFWorkbook(fis);   
+//		sheet = wb.getSheetAt(0);     //creating a Sheet object to retrieve object  
+//		}
+//		catch(Exception ex)
+//		{
+//			
+//		}
+//		Iterator<Row> itr = sheet.iterator();    //iterating over excel file 
+//		int rowIndex=0;
+//		while (itr.hasNext())                 
+//		{  
+//			
+//		Row row = itr.next(); 
+//		if(rowIndex==0)
+//		{
+//			rowIndex++;
+//			System.out.println("This is header row");
+//			row = itr.next();
+//			//continue;
+//		}
+//		rowIndex++;
+//		
+//		int cellIndex=0;
+//		String affectedCI="", deviceName="", deviceIP="";
+//		Iterator<Cell> cellIterator = row.cellIterator();   //iterating over each column  
+//		while (cellIterator.hasNext())   
+//		{  
+//		Cell cell = cellIterator.next(); 
+//		cellIndex++;
+//		String colVal="";
+//		switch (cell.getCellType())               
+//		{
+//		case Cell.CELL_TYPE_STRING:    //field that represents string cell type 
+//			colVal=cell.getStringCellValue();
+//		//System.out.print(cell.getStringCellValue() + "\t\t\t");  
+//		break;  
+//		case Cell.CELL_TYPE_NUMERIC:    //field that represents number cell type 
+//			colVal= Double.toString(cell.getNumericCellValue());
+//		//System.out.print(cell.getNumericCellValue() + "\t\t\t");  
+//		break;  
+//		default:  
+//		}  
+//		if(cellIndex == 1)
+//			affectedCI=colVal;
+//		else if(cellIndex==2)
+//			deviceName=colVal;
+//		else
+//			deviceIP=colVal;
+//		}  
+//		String getQuery="Select device_name, ip from ci_service where device_name='"+deviceName+"'"
+//		+" and ip='"+deviceIP+"'";
+//		ResultSet res= getData(getQuery);
+//		if(res !=null && res.next())
+//		{
+//			String doNothing="Do nothing";
+//			System.out.println(doNothing);  
+//		}
+//		else
+//		{
+//		String query="INSERT INTO ci_service (device_name, affected_ci, ip) VALUES" + 
+//				"('"+deviceName +"', '"+ affectedCI+"', '"+deviceIP+"')";
+//		if(!skipInsert)
+//		InsertData(query);
+//		}
+//		skipInsert=false;
+//		//System.out.println("");  
+//		}  
+//		}  
+//		catch(Exception e)  
+//		{  
+//		e.printStackTrace();  
+//		}
+//		return null;
+//	}
+
 	// Synchronized static timer repeating method.
 	// Repeating call of UploadFileAPI method after specified time in configuration property callRepeateTime
 	public static synchronized void startPollingTimer(String serverCompleteUrl, long timePeriod) 
@@ -95,7 +191,8 @@ class XMLReader
 					{
 					allAlarmIds = new StringBuilder();
 					allExceptions= new StringBuilder();
-					String restResult= executeRestAPI(serverCompleteUrl,"");
+					//String restResult= executeRestAPI(serverCompleteUrl,"");
+					String restResult="";
 					ParseRestXML(restResult);
 					
 					//String APIResults= UploadFileAPI();
@@ -259,35 +356,35 @@ class XMLReader
 	//Parsing XML File.
 	public static void ParseRestXML(String restResult)
 	{
-		//final Object lock = new Object();
+		final Object lock = new Object();
 		try 
 		{
-//			File file=null;
-//			synchronized(lock)
-//			{
-//
-//				try 
-//				{
-//					if (OSName.indexOf("win") >= 0)
-//					{
-//						file= new File(configPropeties.getlocalXMLPathWindows());
-//					} else 
-//					{
-//						file = new File(configPropeties.getlocalXMLPathLinux());
-//					}
-//				}
-//				catch (Exception e) 
-//				{
-//					appendToFile(e);
-//				}
-//			}
+			File file=null;
+			synchronized(lock)
+			{
+
+				try 
+				{
+					if (OSName.indexOf("win") >= 0)
+					{
+						file= new File(configPropeties.getlocalXMLPathWindows());
+					} else 
+					{
+						file = new File(configPropeties.getlocalXMLPathLinux());
+					}
+				}
+				catch (Exception e) 
+				{
+					//appendToFile(e);
+				}
+			}
 			DocumentBuilder dBuilder = DocumentBuilderFactory.newInstance()
 					.newDocumentBuilder();
-			InputSource iss = new InputSource();
-			iss.setCharacterStream(new StringReader(restResult));
+			//InputSource iss = new InputSource();
+			//iss.setCharacterStream(new StringReader(restResult));
 			
-			//Document doc = dBuilder.parse(file);
-			Document doc = dBuilder.parse(iss);
+			Document doc = dBuilder.parse(file);
+			//Document doc = dBuilder.parse(iss);
 			if (doc.hasChildNodes()) 
 			{
 				Node tempNode=doc.getChildNodes().item(0);
@@ -329,7 +426,7 @@ class XMLReader
 		
 		for (int count = 0; count < nodeList.getLength(); count++)
 		{
-
+			int nodeLength=nodeList.getLength();
 			Node tempNode = nodeList.item(count);
 			// make sure it's element node.
 			if (tempNode.getNodeType() == Node.ELEMENT_NODE) 
@@ -367,7 +464,7 @@ class XMLReader
 		String getQuery="Select alarm_id, incident_id from alarm_ticket where action_executed !='Closed'";
 		if(!alarmsList.isEmpty())
 			getQuery= getQuery+" and alarm_id not in(" + alarmsList + ")" ; 
-		res= getAlarmsStateData(getQuery);
+		res= getData(getQuery);
 		if(res !=null && res.next())
 		{
 			String actionName=configPropeties.getSOAPActionNameResolve();
@@ -382,7 +479,7 @@ class XMLReader
 				{
 				String updateQuery="update alarm_ticket set action_executed='closed', "
 				+"action_executed_datetime = '" + getSystemCurentTime() + "' where alarm_id =" + alarmId +"";
-				boolean result= SaveAlarmState(updateQuery);
+				boolean result= InsertData(updateQuery);
 				}
 				else
 					throw new  MicrofocusServerException("Exception occured while accessing microfocus server. Message is "
@@ -402,18 +499,62 @@ class XMLReader
 		boolean sendRequest=false;
 		StringBuilder sb=new StringBuilder();
 		StringBuilder descriptinSb = new StringBuilder();
-		String title="", descriptionString="", infoString="", sourceString="", alarmCountString="";
+		String title="", descriptionString="", infoString="", sourceString="", alarmCountString="", affectedCI="";
+		String alarmArea=configPropeties.getDefaultAlarmArea(), alarmSubArea=configPropeties.getDefaultAlarmSubArea(),
+				serviceType=configPropeties.getDefaultServicetype(); //location=configPropeties.getDefaultLocation(); 
 		String SOAPRes="";
 		int severityInt=0;
 		long alarmId=0, commitId=0, alarmCount=0;
 		String severity="";
 	if (tempNode.hasAttributes())
 	{
+		//To Do changes for location etc.
+		Node tempTagsNode = tempNode.getFirstChild();
+		if(tempTagsNode !=null)
+		{
+		String nodeNameParent=tempTagsNode.getNodeName().trim();
+		if(nodeNameParent.equals("tags"))
+		{
+			Node tempRootCauseNode = tempNode.getFirstChild();
+			NodeList nodeMap = tempRootCauseNode.getChildNodes();
+			for (int i = 0; i < nodeMap.getLength(); i++) 
+			{
+				Node node = nodeMap.item(i);
+				NamedNodeMap nodeAttributes= node.getAttributes();
+				for (int j = 0; j < nodeAttributes.getLength(); j++) 
+				{
+				Node nodeTag = nodeAttributes.item(j);
+				String nodeName= nodeTag.getNodeName();
+				nodeName=nodeName.toLowerCase();
+				String nodeValue=nodeTag.getNodeValue();
+				switch (nodeName) {
+				//case "location":
+					//location=nodeValue;
+					//break;
+				case "category type":
+					alarmArea=nodeValue;
+					break;
+				case "category subtype":
+					alarmSubArea=nodeValue;
+					break;
+				case "service":
+					serviceType=nodeValue;
+					break;
+				default:
+					break;
+				}
+				
+//				System.out.println(nodeName +"\n");
+//				System.out.println(nodeValue +"\n");
+				}
+			}
+		}
+		}
 		// get attributes names and values
 		NamedNodeMap nodeMap = tempNode.getAttributes();
 		for (int i = 0; i < nodeMap.getLength(); i++) 
 		{
-			
+			//int nodeLength=nodeMap.getLength();
 			Node node = nodeMap.item(i);
 			String nodeName= node.getNodeName();
 			String nodeValue=node.getNodeValue();
@@ -421,13 +562,22 @@ class XMLReader
 			{
 			case "info":
 				if(!nodeValue.toLowerCase().equalsIgnoreCase(""))
-				title=" with Information " +nodeValue;
+				{
+					title=" with Information " +nodeValue;
+					String[] arrOfTitle = nodeValue.split(":", 2); 
+					 String affectedCIAndService[]= GetAffecteCIAndService(arrOfTitle[0]);
+					 affectedCI=affectedCIAndService[0];
+					//System.out.println("Title is "+ arrOfTitle[0]);
+				}
 				break;
 			case "severity":
 			{
 				severity=node.getNodeValue();
-				if(severity.trim().toLowerCase().equals("marginal") || severity.trim().toLowerCase().equals("minor"))
+				boolean containsSkipSeverity = Arrays.stream(getSeveritiesToSkip).anyMatch(severity::equals);
+				if(containsSkipSeverity)
+				//if(severity.trim().toLowerCase().equals("marginal") || severity.trim().toLowerCase().equals("minor"))
 				{
+					System.out.println("Skiped alarm for "+ severity);
 					return 0;
 				}
 				switch (node.getNodeName()) 
@@ -438,8 +588,11 @@ class XMLReader
 				  case "major":
 				    severityInt=2;
 				    break;
-				  case "marginal":
+				  case "minor":
 					    severityInt=3;
+					    break;
+				  case "marginal":
+					    severityInt=4;
 					    break;
 				  default:
 					  severityInt=4;
@@ -485,7 +638,7 @@ class XMLReader
 			String actionName="";
 			int count= 0;
 			String severityDB="", actionExecuted="";;
-			res =getAlarmsStateData(getQuery);
+			res =getData(getQuery);
 			if(res !=null && res.next())
 			{
 				count= res.getInt("alarm_count");
@@ -521,7 +674,7 @@ class XMLReader
 					+"'" + getSystemCurentTime() + "' where alarm_id =" + alarmId + "";
 					try 
 					{
-						SaveAlarmState(query);
+						InsertData(query);
 					} 
 					catch (ClassNotFoundException e) 
 					{
@@ -532,11 +685,13 @@ class XMLReader
 			}
 			else
 			{
-				SOAPRes= getCreateTicketSoap(title,sb.toString(),severityInt, alarmId);
+				SOAPRes= getCreateTicketSoap(title,sb.toString(),severityInt, alarmId,
+						alarmArea, alarmSubArea, serviceType, affectedCI);
 				actionName=configPropeties.getSOAPActionNameCreate();
 				String IncidentId="";
 				if(sendRequest)
 				{
+					System.out.println(SOAPRes);
 					 resultedMessageAndIncidentId=callSoapWebService(SOAPRes, actionName);
 					 IncidentId=resultedMessageAndIncidentId[1];
 					//System.out.println(sb.toString());
@@ -550,7 +705,7 @@ class XMLReader
 				+" '" + getSystemCurentTime() + "', " + commitId + ", '"+IncidentId+"')";
 				try 
 				{
-					SaveAlarmState(query);
+					InsertData(query);
 					//TODO : Update alarm Ticket status and Ticket number.
 					String snAlarmUpdate= UpdateTicketDetails(alarmId, IncidentId);
 				} 
@@ -576,6 +731,35 @@ class XMLReader
 			prepareExceptionFormat(e);
 		}
 		return alarmId;
+	}
+	private static String[] GetAffecteCIAndService(String deviceName)
+	{
+		String[] result=new String[2];
+		try
+		{
+		String query="select affected_ci from ci_service where LOWER(device_name) = '" + deviceName.toLowerCase() +"'"
+		+" or ip='" + deviceName + "'";
+		ResultSet res=null;
+		res=getData(query);
+		String affected_ci= null;
+		if(res !=null && res.next())
+		{
+		//String affected_ci=res.getString("affected_ci");
+		affected_ci=res.getString("affected_ci");
+		if(affected_ci.isEmpty())
+			affected_ci= configPropeties.getDefaultAffectedCI();
+		}
+		else
+		{
+			affected_ci= configPropeties.getDefaultAffectedCI();
+		}
+			result[0]=affected_ci;
+		}
+		catch(Exception ex)
+		{
+			prepareExceptionFormat(ex);
+		}
+		return result;
 	}
 	private static String UpdateTicketDetails(long alarmId, String incidentId)
 	{
@@ -666,7 +850,8 @@ class XMLReader
 		return updateResult;
 	}
 	//Method to get SOAP response to create new ticket.
-	private static String getCreateTicketSoap(String title, String descriptionString, int severityInt, long alarmId)
+	private static String getCreateTicketSoap(String title, String descriptionString, int severityInt, long alarmId,
+			String alarmArea, String alarmSubArea, String serviceType, String affectedCI)
 	{
 		StringBuilder sb=new StringBuilder();
 		sb.append("<?xml version=\"1.0\" standalone=\"no\"?>\r\n");
@@ -685,11 +870,13 @@ class XMLReader
 		sb.append(descriptionString);
 		sb.append("</ns:Description>\r\n");
 		sb.append(" <ns:Category type=\"String\">Incident</ns:Category>\r\n");
-		sb.append("<ns:Area type=\"String\">performance</ns:Area>\r\n");
-		sb.append("<ns:Subarea type=\"String\">performance degradation</ns:Subarea>\r\n");
+		sb.append("<ns:Area type=\"String\">"+alarmArea+"</ns:Area>\r\n");
+		sb.append("<ns:Subarea type=\"String\">"+alarmSubArea+"</ns:Subarea>\r\n");
 		sb.append("<ns:Urgency type=\"String\">"+severityInt+"</ns:Urgency>\r\n ");
 		sb.append("<ns:AssignmentGroup type=\"String\" >" + configPropeties.getAssignmentGroupTitle() + "</ns:AssignmentGroup>\r\n");
-		sb.append("<ns:Service type=\"String\">CI1001366</ns:Service>\r\n");
+		sb.append("<ns:Service type=\"String\">"+serviceType+"</ns:Service>\r\n");
+		sb.append("<ns:AffectedCI type=\"String\">"+ affectedCI +"</ns:AffectedCI>\r\n");
+		//sb.append("<ns:Location type=\"String\">"+location+"</ns:Location>\r\n");
 		//sb.append("<ns:Service type=\"String\">CI1001366</ns:Service>\r\n");
 		sb.append("<ns:Impact type=\"String\">1</ns:Impact>\r\n");
 		sb.append("<ns:ExternalID type=\"String\">"+alarmId+"</ns:ExternalID>\r\n");
@@ -891,49 +1078,49 @@ class XMLReader
             String soapEndpointUrl = configPropeties.getWebServiceInitialLink();
             String soapAction = configPropeties.getfileUploadUrl();//"http://www.webserviceX.NET/GetInfoByCity";
             // Send SOAP Message to SOAP Server
-            SOAPMessage soapResponse = soapConnection.call(createSOAPRequest(soapAction, strXML, actionName), soapEndpointUrl);
+           // SOAPMessage soapResponse = soapConnection.call(createSOAPRequest(soapAction, strXML, actionName), soapEndpointUrl);
            // Response for test purposes.
-//            String send="<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\">\r\n" + 
-//            		"   <SOAP-ENV:Body>\r\n" + 
-//            		"      <CreateIncidentResponse message=\"Success\" returnCode=\"0\" schemaRevisionDate=\"2019-10-01\" schemaRevisionLevel=\"1\" status=\"SUCCESS\" xsi:schemaLocation=\"http://schemas.hp.com/SM/7 http://smsvr1-mct-1a.scnrop.gov.om:13080/SM/7/Incident.xsd\" xmlns=\"http://schemas.hp.com/SM/7\" xmlns:cmn=\"http://schemas.hp.com/SM/7/Common\" xmlns:xmime=\"http://www.w3.org/2005/05/xmlmime\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n" + 
-//            		"         <model>\r\n" + 
-//            		"            <keys>\r\n" + 
-//            		"               <IncidentID type=\"String\">IM575132</IncidentID>\r\n" + 
-//            		"            </keys>\r\n" + 
-//            		"            <instance recordid=\"IM575132 - Stablenet ALARM : Desription\" uniquequery=\"number=&quot;IM575132&quot;\">\r\n" + 
-//            		"               <IncidentID type=\"String\">IM575132</IncidentID>\r\n" + 
-//            		"               <Category type=\"String\">Incident</Category>\r\n" + 
-//            		"               <OpenTime type=\"DateTime\">2019-12-30T10:52:36+00:00</OpenTime>\r\n" + 
-//            		"               <OpenedBy type=\"String\">int-sn</OpenedBy>\r\n" + 
-//            		"               <Urgency type=\"String\">4</Urgency>\r\n" + 
-//            		"               <UpdatedTime type=\"DateTime\">2019-12-30T10:52:36+00:00</UpdatedTime>\r\n" + 
-//            		"               <AssignmentGroup type=\"String\">ROP-ETESALAT-FO</AssignmentGroup>\r\n" + 
-//            		"               <Description type=\"Array\">\r\n" + 
-//            		"                  <Description type=\"String\">text1</Description>\r\n" + 
-//            		"                  <Description type=\"String\">text2</Description>\r\n" + 
-//            		"                  <Description type=\"String\">text3</Description>\r\n" + 
-//            		"               </Description>\r\n" + 
-//            		"               <Title type=\"String\">Stablenet ALARM : Desription</Title>\r\n" + 
-//            		"               <UpdatedBy type=\"String\">int-sn</UpdatedBy>\r\n" + 
-//            		"               <Status type=\"String\">Categorize</Status>\r\n" + 
-//            		"               <Phase type=\"String\">Categorization</Phase>\r\n" + 
-//            		"               <Area type=\"String\">performance</Area>\r\n" + 
-//            		"               <Subarea type=\"String\">performance degradation</Subarea>\r\n" + 
-//            		"               <Impact type=\"String\">1</Impact>\r\n" + 
-//            		"               <Service display=\"Default\" type=\"String\">CI1001366</Service>\r\n" + 
-//            		"               <ExternalID type=\"String\">IM15</ExternalID>\r\n" + 
-//            		"            </instance>\r\n" + 
-//            		"         </model>\r\n" + 
-//            		"         <messages>\r\n" + 
-//            		"            <cmn:message type=\"String\">US/Mountain 12/30/19 03:52:36:  Incident IM575132 has been opened by int-sn</cmn:message>\r\n" + 
-//            		"            <cmn:message type=\"String\">Incident \"IM575132\" added.</cmn:message>\r\n" + 
-//            		"         </messages>\r\n" + 
-//            		"      </CreateIncidentResponse>\r\n" + 
-//            		"   </SOAP-ENV:Body>\r\n" + 
-//            		"</SOAP-ENV:Envelope>\r\n" + 
-//            		"";
-//            InputStream is = new ByteArrayInputStream(send.getBytes());
-//            SOAPMessage soapResponse = MessageFactory.newInstance().createMessage(null, is);
+            String send="<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\">\r\n" + 
+            		"   <SOAP-ENV:Body>\r\n" + 
+            		"      <CreateIncidentResponse message=\"Success\" returnCode=\"0\" schemaRevisionDate=\"2019-10-01\" schemaRevisionLevel=\"1\" status=\"SUCCESS\" xsi:schemaLocation=\"http://schemas.hp.com/SM/7 http://smsvr1-mct-1a.scnrop.gov.om:13080/SM/7/Incident.xsd\" xmlns=\"http://schemas.hp.com/SM/7\" xmlns:cmn=\"http://schemas.hp.com/SM/7/Common\" xmlns:xmime=\"http://www.w3.org/2005/05/xmlmime\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n" + 
+            		"         <model>\r\n" + 
+            		"            <keys>\r\n" + 
+            		"               <IncidentID type=\"String\">IM575132</IncidentID>\r\n" + 
+            		"            </keys>\r\n" + 
+            		"            <instance recordid=\"IM575132 - Stablenet ALARM : Desription\" uniquequery=\"number=&quot;IM575132&quot;\">\r\n" + 
+            		"               <IncidentID type=\"String\">IM575132</IncidentID>\r\n" + 
+            		"               <Category type=\"String\">Incident</Category>\r\n" + 
+            		"               <OpenTime type=\"DateTime\">2019-12-30T10:52:36+00:00</OpenTime>\r\n" + 
+            		"               <OpenedBy type=\"String\">int-sn</OpenedBy>\r\n" + 
+            		"               <Urgency type=\"String\">4</Urgency>\r\n" + 
+            		"               <UpdatedTime type=\"DateTime\">2019-12-30T10:52:36+00:00</UpdatedTime>\r\n" + 
+            		"               <AssignmentGroup type=\"String\">ROP-ETESALAT-FO</AssignmentGroup>\r\n" + 
+            		"               <Description type=\"Array\">\r\n" + 
+            		"                  <Description type=\"String\">text1</Description>\r\n" + 
+            		"                  <Description type=\"String\">text2</Description>\r\n" + 
+            		"                  <Description type=\"String\">text3</Description>\r\n" + 
+            		"               </Description>\r\n" + 
+            		"               <Title type=\"String\">Stablenet ALARM : Desription</Title>\r\n" + 
+            		"               <UpdatedBy type=\"String\">int-sn</UpdatedBy>\r\n" + 
+            		"               <Status type=\"String\">Categorize</Status>\r\n" + 
+            		"               <Phase type=\"String\">Categorization</Phase>\r\n" + 
+            		"               <Area type=\"String\">performance</Area>\r\n" + 
+            		"               <Subarea type=\"String\">performance degradation</Subarea>\r\n" + 
+            		"               <Impact type=\"String\">1</Impact>\r\n" + 
+            		"               <Service display=\"Default\" type=\"String\">CI1001366</Service>\r\n" + 
+            		"               <ExternalID type=\"String\">IM15</ExternalID>\r\n" + 
+            		"            </instance>\r\n" + 
+            		"         </model>\r\n" + 
+            		"         <messages>\r\n" + 
+            		"            <cmn:message type=\"String\">US/Mountain 12/30/19 03:52:36:  Incident IM575132 has been opened by int-sn</cmn:message>\r\n" + 
+            		"            <cmn:message type=\"String\">Incident \"IM575132\" added.</cmn:message>\r\n" + 
+            		"         </messages>\r\n" + 
+            		"      </CreateIncidentResponse>\r\n" + 
+            		"   </SOAP-ENV:Body>\r\n" + 
+            		"</SOAP-ENV:Envelope>\r\n" + 
+            		"";
+            InputStream is = new ByteArrayInputStream(send.getBytes());
+            SOAPMessage soapResponse = MessageFactory.newInstance().createMessage(null, is);
            Document doc= parseSoapResponse(soapResponse);
            if (doc.hasChildNodes()) 
 			{
@@ -1047,7 +1234,7 @@ class XMLReader
     		return null;
     	}
     }
-    private static ResultSet getAlarmsStateData(String query) throws ClassNotFoundException
+    private static ResultSet getData(String query) throws ClassNotFoundException
     {
     	Connection conn= cpm.getConnectionFromPool();
         ResultSet rs;
@@ -1071,7 +1258,7 @@ class XMLReader
 		return rs;
     	
     }
-    private static boolean SaveAlarmState(String query) throws SQLException, ClassNotFoundException
+    private static boolean InsertData(String query) throws SQLException, ClassNotFoundException
     {
     	Connection con= cpm.getConnectionFromPool();
     	boolean result=false;

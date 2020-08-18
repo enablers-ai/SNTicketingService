@@ -103,11 +103,35 @@ public class Configurations {
 		@SerializedName("AssignmentGroupTitle")
 		@Expose
 		private String AssignmentGroupTitle;
+		//DefaultLocation
+		@SerializedName("DefaultLocation")
+		@Expose
+		private String DefaultLocation;
+		//DefaultServicetype
+		@SerializedName("DefaultServicetype")
+		@Expose
+		private String DefaultServicetype;
+		//DefaultAlarmArea
+		@SerializedName("DefaultAlarmArea")
+		@Expose
+		private String DefaultAlarmArea;
+		//DefaultAlarmSubArea
+		@SerializedName("DefaultAlarmSubArea")
+		@Expose
+		private String DefaultAlarmSubArea;
+		//DefaultAffectedCI
+		@SerializedName("DefaultAffectedCI")
+		@Expose
+		private String DefaultAffectedCI;
 		//WinndowsExceptionsPath
 		public String getWinndowsExceptionsPath() {
 		return winndowsExceptionsPath;
 		}
-
+		//severitiesToSkip
+		@SerializedName("severitiesToSkip")
+		@Expose
+		private String severitiesToSkip;
+		
 		public void setWinndowsExceptionsPath(String winndowsExceptionsPath) {
 		this.winndowsExceptionsPath = winndowsExceptionsPath;
 		}
@@ -304,5 +328,53 @@ public class Configurations {
 		}
 		public void setAssignmentGroupTitle(String AssignmentGroupTitle) {
 		this.AssignmentGroupTitle = AssignmentGroupTitle;
+		}
+		//DefaultLocation
+		public String getDefaultLocation() 
+		{
+		return DefaultLocation;
+		}
+		public void setDefaultLocation(String DefaultLocation) {
+		this.DefaultLocation = DefaultLocation;
+		}
+		//DefaultServicetype
+		public String getDefaultServicetype() 
+		{
+		return DefaultServicetype;
+		}
+		public void setDefaultServicetype(String DefaultServicetype) {
+		this.DefaultServicetype = DefaultServicetype;
+		}
+		//DefaultAlarmArea
+		public String getDefaultAlarmArea() 
+		{
+		return DefaultAlarmArea;
+		}
+		public void setDefaultAlarmArea(String DefaultAlarmArea) {
+		this.DefaultAlarmArea = DefaultAlarmArea;
+		}
+		//DefaultAlarmSubArea
+		public String getDefaultAlarmSubArea() 
+		{
+		return DefaultAlarmSubArea;
+		}
+		public void setDefaultAlarmSubArea(String DefaultAlarmSubArea) {
+		this.DefaultAlarmSubArea = DefaultAlarmSubArea;
+		}
+		//DefaultAffectedCI
+		public String getDefaultAffectedCI() 
+		{
+		return DefaultAffectedCI;
+		}
+		public void setDefaultAffectedCI(String DefaultAffectedCI) {
+		this.DefaultAffectedCI = DefaultAffectedCI;
+		}
+		//SeveritiesToSkip
+		public String getSeveritiesToSkip() 
+		{
+		return severitiesToSkip;
+		}
+		public void setSeveritiesToSkip(String severitiesToSkip) {
+		this.severitiesToSkip = severitiesToSkip;
 		}
 }
