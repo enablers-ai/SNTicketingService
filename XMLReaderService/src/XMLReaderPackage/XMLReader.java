@@ -297,7 +297,7 @@ class XMLReader
 		sb.append(System.getProperty("line.separator"));
 		sb.append(sStackTrace);
 		sb.append(System.getProperty("line.separator"));
-		System.out.println(sb.toString());
+		//System.out.println(sb.toString());
 		allExceptions.append(sb.toString());
 	}
 	//Exception write to file method.
@@ -399,35 +399,35 @@ class XMLReader
 	//Parsing XML File.
 	public static void ParseRestXML(String restResult)
 	{
-		final Object lock = new Object();
+//		final Object lock = new Object();
 		try 
 		{
-			File file=null;
-			synchronized(lock)
-			{
-
-				try 
-				{
-					if (OSName.indexOf("win") >= 0)
-					{
-						file= new File(configPropeties.getlocalXMLPathWindows());
-					} else 
-					{
-						file = new File(configPropeties.getlocalXMLPathLinux());
-					}
-				}
-				catch (Exception e) 
-				{
-					//appendToFile(e);
-				}
-			}
+//			File file=null;
+//			synchronized(lock)
+//			{
+//
+//				try 
+//				{
+//					if (OSName.indexOf("win") >= 0)
+//					{
+//						file= new File(configPropeties.getlocalXMLPathWindows());
+//					} else 
+//					{
+//						file = new File(configPropeties.getlocalXMLPathLinux());
+//					}
+//				}
+//				catch (Exception e) 
+//				{
+//					//appendToFile(e);
+//				}
+//			}
 			DocumentBuilder dBuilder = DocumentBuilderFactory.newInstance()
 					.newDocumentBuilder();
 			InputSource iss = new InputSource();
-			//iss.setCharacterStream(new StringReader(restResult));
+			iss.setCharacterStream(new StringReader(restResult));
 
-			Document doc = dBuilder.parse(file);
-			//Document doc = dBuilder.parse(iss);
+			//Document doc = dBuilder.parse(file);
+			Document doc = dBuilder.parse(iss);
 			if (doc.hasChildNodes()) 
 			{
 				Node tempNode=doc.getChildNodes().item(0);
@@ -563,7 +563,9 @@ class XMLReader
 		StringBuilder sb=new StringBuilder();
 		StringBuilder descriptinSb = new StringBuilder();
 		//Create A class named Alarm Area Conatins the following field
-		String title="", descriptionString="", infoString="", sourceString="", alarmCountString="", affectedCI="";
+		String title="", descriptionString="", infoString="", sourceString="", alarmCountString="", 
+				affectedCI = configPropeties.getDefaultAffectedCI()
+				, impact="1";
 		String alarmArea=configPropeties.getDefaultAlarmArea(), alarmSubArea=configPropeties.getDefaultAlarmSubArea(),
 				serviceType=configPropeties.getDefaultServicetype(); //location=configPropeties.getDefaultLocation(); 
 		String SOAPRes="";
@@ -606,6 +608,12 @@ class XMLReader
 							case "category service level":
 								serviceType=nodeValue;
 								break;
+							case "category inventory number":
+								affectedCI=nodeValue;
+								break;
+							case "category inventory path":
+								impact=nodeValue;
+								break;
 							default:
 								break;
 							//}
@@ -636,10 +644,6 @@ class XMLReader
 						{
 							DeviceDataAttributes deviceDataAttributes=new DeviceDataAttributes();
 							deviceDataAttributes=deviceDataAttributeDic.get(arrOfTitle[0].toLowerCase());
-							if(deviceDataAttributes !=null)
-								affectedCI = deviceDataAttributes.AffectedCI;
-							else
-								affectedCI= configPropeties.getDefaultAffectedCI();
 							//affectedCI=affectedCIAndService[0];
 						}
 						//System.out.println("Title is "+ arrOfTitle[0]);
@@ -655,7 +659,7 @@ class XMLReader
 						//System.out.println("Skiped alarm for "+ severity);
 						return 0;
 					}
-					switch (node.getNodeName()) 
+					switch (severity.toLowerCase()) 
 					{
 					case "critical":
 						severityInt=1;
@@ -763,13 +767,13 @@ class XMLReader
 			else
 			{
 				SOAPRes= getCreateTicketSoap(title,sb.toString(),severityInt, alarmId,
-						alarmArea, alarmSubArea, serviceType, affectedCI);
+						alarmArea, alarmSubArea, serviceType, affectedCI, impact);
 				actionName=configPropeties.getSOAPActionNameCreate();
 				String IncidentId="";
 				if(sendRequest)
 				{
 					//For testing in SOAPUI.
-					System.out.println(SOAPRes);
+					//System.out.println(SOAPRes);
 					resultedMessageAndIncidentId=callSoapWebService(SOAPRes, actionName);
 					IncidentId=resultedMessageAndIncidentId[1];
 					//System.out.println(sb.toString());
@@ -930,7 +934,7 @@ class XMLReader
 	}
 	//Method to get SOAP response to create new ticket.
 	private static String getCreateTicketSoap(String title, String descriptionString, int severityInt, long alarmId,
-			String alarmArea, String alarmSubArea, String serviceType, String affectedCI)
+			String alarmArea, String alarmSubArea, String serviceType, String affectedCI, String impact)
 	{
 		StringBuilder sb=new StringBuilder();
 		sb.append("<?xml version=\"1.0\" standalone=\"no\"?>\r\n");
@@ -949,15 +953,15 @@ class XMLReader
 		sb.append(descriptionString);
 		sb.append("</ns:Description>\r\n");
 		sb.append(" <ns:Category type=\"String\">Incident</ns:Category>\r\n");
-		sb.append("<ns:Area type=\"String\">"+alarmArea+"</ns:Area>\r\n");
-		sb.append("<ns:Subarea type=\"String\">"+alarmSubArea+"</ns:Subarea>\r\n");
+		sb.append("<ns:Area type=\"String\">"+ alarmSubArea+"</ns:Area>\r\n");
+		sb.append("<ns:Subarea type=\"String\">"+alarmArea+"</ns:Subarea>\r\n");
 		sb.append("<ns:Urgency type=\"String\">"+severityInt+"</ns:Urgency>\r\n ");
 		sb.append("<ns:AssignmentGroup type=\"String\" >" + configPropeties.getAssignmentGroupTitle() + "</ns:AssignmentGroup>\r\n");
 		sb.append("<ns:Service type=\"String\">"+serviceType+"</ns:Service>\r\n");
 		sb.append("<ns:AffectedCI type=\"String\">"+ affectedCI +"</ns:AffectedCI>\r\n");
 		//sb.append("<ns:Location type=\"String\">"+location+"</ns:Location>\r\n");
 		//sb.append("<ns:Service type=\"String\">CI1001366</ns:Service>\r\n");
-		sb.append("<ns:Impact type=\"String\">1</ns:Impact>\r\n");
+		sb.append("<ns:Impact type=\"String\">"+impact+"</ns:Impact>\r\n");
 		sb.append("<ns:ExternalID type=\"String\">"+alarmId+"</ns:ExternalID>\r\n");
 		sb.append("</ns:instance>\r\n" +  
 				"</ns:model>\r\n");
@@ -1198,8 +1202,8 @@ class XMLReader
 //					"   </SOAP-ENV:Body>\r\n" + 
 //					"</SOAP-ENV:Envelope>\r\n" + 
 //					"";
-			//InputStream is = new ByteArrayInputStream(send.getBytes());
-			//SOAPMessage soapResponse = MessageFactory.newInstance().createMessage(null, is);
+//			InputStream is = new ByteArrayInputStream(send.getBytes());
+//			SOAPMessage soapResponse = MessageFactory.newInstance().createMessage(null, is);
 			Document doc= parseSoapResponse(soapResponse);
 			if (doc.hasChildNodes()) 
 			{
@@ -1210,9 +1214,9 @@ class XMLReader
 			//String soapString=soapResponse.toString();
 			//TimeUnit.MILLISECONDS.sleep(200);
 			// Print the SOAP Response
-			System.out.println("Response SOAP Message:");
-			soapResponse.writeTo(System.out);
-			System.out.println();
+			//System.out.println("Response SOAP Message:");
+			//soapResponse.writeTo(System.out);
+			//System.out.println();
 			soapConnection.close();
 			//TimeUnit.MILLISECONDS.sleep(50);
 		}
