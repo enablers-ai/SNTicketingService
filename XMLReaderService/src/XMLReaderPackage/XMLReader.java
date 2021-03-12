@@ -535,8 +535,14 @@ class XMLReader
 					String resultedMessageAndIncidentId[]=new String[2];
 					long alarmId= res.getLong("alarm_id");
 					String incidentId=res.getString("incident_id");
+					try {
 					String ResolveTicketSoap=getResolveTicketSoap(incidentId, alarmId);
 					resultedMessageAndIncidentId=callSoapWebService(ResolveTicketSoap, actionName);
+					}
+					catch(Exception ex)
+					{
+						prepareExceptionFormat(ex);
+					}
 					String IncidentId=resultedMessageAndIncidentId[1];
 					if(resultedMessageAndIncidentId[0].equals("Success"))
 					{
@@ -546,7 +552,7 @@ class XMLReader
 					}
 					else
 						throw new  MicrofocusServerException("Exception occured while accessing microfocus server. Message is "
-								+"" + resultedMessageAndIncidentId[0] +"and Incident Id is "+ IncidentId +" and AlarmId is "+ alarmId);
+								+"" + resultedMessageAndIncidentId[0] +" and Incident Id is "+ IncidentId +" and AlarmId is "+ alarmId);
 				}
 				while (res.next());
 			}
