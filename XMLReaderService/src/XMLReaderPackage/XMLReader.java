@@ -399,10 +399,10 @@ class XMLReader
 	//Parsing XML File.
 	public static void ParseRestXML(String restResult)
 	{
-//		final Object lock = new Object();
+		//final Object lock = new Object();
 		try 
 		{
-//			File file=null;
+//		File file=null;
 //			synchronized(lock)
 //			{
 //
@@ -506,7 +506,7 @@ class XMLReader
 		ResultSet res=null;
 		try
 		{
-			String getQuery="Select alarm_id, incident_id from alarm_ticket where action_executed !='Closed'";
+			String getQuery="Select alarm_id, incident_id from alarm_ticket where action_executed !='Closed' AND action_executed !='missing'";
 			if(!alarmsList.isEmpty())
 				getQuery= getQuery+" and alarm_id not in(" + alarmsList + ")" ; 
 			res= getData(getQuery);
@@ -541,12 +541,21 @@ class XMLReader
 					}
 					catch(Exception ex)
 					{
+						//String updateQuery="update alarm_ticket set action_executed='missing', "
+						//		+"action_executed_datetime = '" + getSystemCurentTime() + "' where alarm_id =" + alarmId +"";
+						//boolean result= InsertData(updateQuery);
 						prepareExceptionFormat(ex);
 					}
 					String IncidentId=resultedMessageAndIncidentId[1];
 					if(resultedMessageAndIncidentId[0].equals("Success"))
 					{
 						String updateQuery="update alarm_ticket set action_executed='closed', "
+								+"action_executed_datetime = '" + getSystemCurentTime() + "' where alarm_id =" + alarmId +"";
+						boolean result= InsertData(updateQuery);
+					}
+					else if(resultedMessageAndIncidentId[0].equals("No (more) records found"))
+					{
+						String updateQuery="update alarm_ticket set action_executed='missing', "
 								+"action_executed_datetime = '" + getSystemCurentTime() + "' where alarm_id =" + alarmId +"";
 						boolean result= InsertData(updateQuery);
 					}
@@ -1210,6 +1219,27 @@ class XMLReader
 //					"";
 //			InputStream is = new ByteArrayInputStream(send.getBytes());
 //			SOAPMessage soapResponse = MessageFactory.newInstance().createMessage(null, is);
+		   // Close Incident Response with error.
+//		  String response="<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\">\r\n" + 
+//		  		"		   <SOAP-ENV:Body>\r\n" + 
+//		  		"		      <ResolveIncidentResponse message=\"No (more) records found\" returnCode=\"9\" schemaRevisionDate=\"2021-02-08\" schemaRevisionLevel=\"0\" status=\"FAILURE\" xsi:schemaLocation=\"http://schemas.hp.com/SM/7 http://smsvr1-mct-1a.scnrop.gov.om:13082/SM/7/Incident.xsd\" xmlns=\"http://schemas.hp.com/SM/7\" xmlns:cmn=\"http://schemas.hp.com/SM/7/Common\" xmlns:xmime=\"http://www.w3.org/2005/05/xmlmime\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\r\n" + 
+//		  		"		         <model>\r\n" + 
+//		  		"		            <keys>\r\n" + 
+//		  		"		               <IncidentID type=\"String\">IM4072650</IncidentID>\r\n" + 
+//		  		"		            </keys>\r\n" + 
+//		  		"		            <instance recordid=\"IM4072650 - \" uniquequery=\"number=&quot;IM4072650&quot;\">\r\n" + 
+//		  		"		               <IncidentID type=\"String\">IM575132</IncidentID>\r\n" + 
+//		  		"		               <ClosureCode type=\"String\">Automatically Closed</ClosureCode>\r\n" + 
+//		  		"		               <Solution type=\"Array\">\r\n" + 
+//		  		"		                  <Solution type=\"String\">Alarm resolved</Solution>\r\n" + 
+//		  		"		               </Solution>\r\n" + 
+//		  		"		            </instance>\r\n" + 
+//		  		"		         </model>\r\n" + 
+//		  		"		      </ResolveIncidentResponse>\r\n" + 
+//		  		"		   </SOAP-ENV:Body>\r\n" + 
+//		  		"		</SOAP-ENV:Envelope>";
+//		  InputStream is = new ByteArrayInputStream(response.getBytes());
+//		  SOAPMessage soapResponse = MessageFactory.newInstance().createMessage(null, is);
 			Document doc= parseSoapResponse(soapResponse);
 			if (doc.hasChildNodes()) 
 			{
@@ -1404,7 +1434,6 @@ class XMLReader
 				case "ResolveIncidentResponse":
 					Node messageNodeResolve = tempNode.getAttributes().getNamedItem("message");//.getNodeValue();//("message");//.getTextContent().trim();
 					message=messageNodeResolve.getNodeValue();
-					//if(actionName.equals(configPropeties.getSOAPActionNameCreate()))
 					result=getResponseNodesData(tempNode);
 					resultantArr[0]=message;
 					resultantArr[1]=result;
